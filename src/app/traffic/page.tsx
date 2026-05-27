@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Sidebar from "@/components/Sidebar";
 import TrafficDashboard from "@/components/traffic/TrafficDashboard";
 import { getStores } from "@/lib/stores";
-import { isMetaConnected } from "@/lib/meta";
+import { isMetaConnected, checkMetaToken } from "@/lib/meta";
 import { isGoogleConnected } from "@/lib/googleAds";
 
 export const revalidate = 0; // always check connection status fresh
@@ -11,6 +11,7 @@ export default async function TrafficPage() {
   const [stores] = await Promise.all([getStores()]);
   const metaConnected   = isMetaConnected();
   const googleConnected = isGoogleConnected();
+  const metaTokenError  = metaConnected ? await checkMetaToken() : null;
 
   return (
     <div className="flex h-screen w-full overflow-hidden" style={{ background: "var(--bg-app)" }}>
@@ -30,15 +31,17 @@ export default async function TrafficPage() {
           <div className="flex items-center gap-3">
             {/* Connection status badges */}
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
+              <span
+                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
+                title={metaTokenError ?? undefined}
                 style={{
-                  background: metaConnected   ? "#10b98115" : "#6b728015",
-                  border:     `1px solid ${metaConnected   ? "#10b98140" : "var(--border)"}`,
-                  color:      metaConnected   ? "#10b981" : "var(--text-faint)",
+                  background: metaTokenError ? "#ef444415" : metaConnected ? "#10b98115" : "#6b728015",
+                  border:     `1px solid ${metaTokenError ? "#ef444430" : metaConnected ? "#10b98140" : "var(--border)"}`,
+                  color:      metaTokenError ? "#ef4444"  : metaConnected ? "#10b981" : "var(--text-faint)",
                 }}>
                 <span className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: metaConnected ? "#10b981" : "var(--text-faint)" }} />
-                Meta {metaConnected ? "connected" : "not connected"}
+                  style={{ background: metaTokenError ? "#ef4444" : metaConnected ? "#10b981" : "var(--text-faint)" }} />
+                Meta {metaTokenError ? "auth error" : metaConnected ? "connected" : "not connected"}
               </span>
               <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
                 style={{
@@ -55,7 +58,8 @@ export default async function TrafficPage() {
         </div>
 
         <TrafficDashboard
-          metaConnected={metaConnected}
+          metaConnected={metaConnected && !metaTokenError}
+          metaTokenError={metaTokenError}
           googleConnected={googleConnected}
         />
       </main>

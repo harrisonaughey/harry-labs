@@ -13,6 +13,20 @@ export function isMetaConnected() {
   return !!(process.env.META_ACCESS_TOKEN && process.env.META_AD_ACCOUNT_ID);
 }
 
+/** Live token check — call server-side only. Returns null on success, error string on failure. */
+export async function checkMetaToken(): Promise<string | null> {
+  if (!isMetaConnected()) return "not configured";
+  try {
+    const r = await fetch(`${META_BASE}/me?fields=id&access_token=${token()}`);
+    if (r.ok) return null;
+    const d = await r.json();
+    const e = d?.error;
+    return e ? `${e.message} (code ${e.code})` : `HTTP ${r.status}`;
+  } catch {
+    return "network error";
+  }
+}
+
 async function metaGet(path: string, params: Record<string, string> = {}) {
   const qs = new URLSearchParams({ ...params, access_token: token() }).toString();
   const res = await fetch(`${META_BASE}${path}?${qs}`);
