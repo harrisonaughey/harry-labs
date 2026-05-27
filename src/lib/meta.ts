@@ -18,7 +18,9 @@ async function metaGet(path: string, params: Record<string, string> = {}) {
   const res = await fetch(`${META_BASE}${path}?${qs}`);
   if (!res.ok) {
     const err = await res.json();
-    throw new Error(err?.error?.message ?? `Meta API ${res.status}`);
+    const e = err?.error ?? {};
+    const detail = [e.message, e.type && `type=${e.type}`, e.code && `code=${e.code}`, e.error_subcode && `subcode=${e.error_subcode}`].filter(Boolean).join(" | ");
+    throw new Error(detail || `Meta API ${res.status}`);
   }
   return res.json();
 }
