@@ -34,13 +34,13 @@ export default function ProductsView({ products }: { products: Product[] }) {
     <>
       {/* Tab bar */}
       <div className="flex items-center gap-1 mb-6 p-1 rounded-lg w-fit"
-        style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id as any)}
             className="text-sm px-4 py-1.5 rounded-md font-medium transition-all"
             style={{
               background: tab === t.id ? "#1e1e30" : "transparent",
-              color:      tab === t.id ? "#a5b4fc" : "#6b7280",
+              color:      tab === t.id ? "#a5b4fc" : "var(--text-muted)",
             }}>
             {t.label}
           </button>

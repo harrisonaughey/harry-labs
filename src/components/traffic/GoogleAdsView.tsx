@@ -20,13 +20,13 @@ const CHANNEL_LABEL: Record<string, string> = {
 
 function KpiCard({ label, value, sub, icon, color }: { label: string; value: string; sub?: string; icon: string; color?: string }) {
   return (
-    <div className="rounded-xl p-4" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+    <div className="rounded-xl p-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs uppercase tracking-wider" style={{ color: "#6b7280" }}>{label}</span>
+        <span className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{label}</span>
         <span>{icon}</span>
       </div>
-      <p className="text-xl font-semibold" style={{ color: color ?? "#ffffff" }}>{value}</p>
-      {sub && <p className="text-xs mt-1" style={{ color: "#4b5563" }}>{sub}</p>}
+      <p className="text-xl font-semibold" style={{ color: color ?? "var(--text-primary)" }}>{value}</p>
+      {sub && <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>{sub}</p>}
     </div>
   );
 }
@@ -70,8 +70,8 @@ export default function GoogleAdsView({ connected }: { connected: boolean }) {
               className="text-xs px-3 py-1.5 rounded-md font-medium transition-all"
               style={{
                 background: days === d ? "#1e1e30" : "transparent",
-                color:      days === d ? "#a5b4fc" : "#6b7280",
-                border:     `1px solid ${days === d ? "#3730a3" : "#1e1e2e"}`,
+                color:      days === d ? "#a5b4fc" : "var(--text-muted)",
+                border:     `1px solid ${days === d ? "#3730a3" : "var(--border)"}`,
               }}>
               {d}d
             </button>
@@ -105,25 +105,25 @@ export default function GoogleAdsView({ connected }: { connected: boolean }) {
       </div>
 
       {/* Campaign Table */}
-      <div className="rounded-xl" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid #1e1e2e" }}>
+      <div className="rounded-xl" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="flex items-center gap-3">
-            <h2 className="text-sm font-semibold text-white">Campaigns</h2>
-            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#1e1e30", color: "#6b7280" }}>
+            <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Campaigns</h2>
+            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#1e1e30", color: "var(--text-muted)" }}>
               {campaigns.length} campaigns
             </span>
           </div>
-          <span className="text-xs" style={{ color: "#4b5563" }}>Sorted by spend</span>
+          <span className="text-xs" style={{ color: "var(--text-faint)" }}>Sorted by spend</span>
         </div>
 
         {loading && campaigns.length === 0 ? (
-          <div className="py-12 text-center text-sm" style={{ color: "#4b5563" }}>Loading campaigns…</div>
+          <div className="py-12 text-center text-sm" style={{ color: "var(--text-faint)" }}>Loading campaigns…</div>
         ) : campaigns.length === 0 ? (
-          <div className="py-12 text-center text-sm" style={{ color: "#4b5563" }}>No campaign data for this period</div>
+          <div className="py-12 text-center text-sm" style={{ color: "var(--text-faint)" }}>No campaign data for this period</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr style={{ color: "#4b5563" }}>
+              <tr style={{ color: "var(--text-faint)" }}>
                 {["Campaign", "Type", "Status", "Spend", "Impressions", "Clicks", "CTR", "Avg CPC", "Conversions", "ROAS"].map(h => (
                   <th key={h} className="px-4 py-3 text-left font-medium uppercase tracking-wider">{h}</th>
                 ))}
@@ -131,12 +131,12 @@ export default function GoogleAdsView({ connected }: { connected: boolean }) {
             </thead>
             <tbody>
               {campaigns.map((c: any) => {
-                const s = STATUS_STYLE[c.status] ?? { bg: "#6b728020", text: "#9ca3af" };
+                const s = STATUS_STYLE[c.status] ?? { bg: "#6b728020", text: "var(--text-secondary)" };
                 return (
-                  <tr key={c.id} style={{ borderTop: "1px solid #1a1a24" }}
+                  <tr key={c.id} style={{ borderTop: "1px solid var(--border-subtle)" }}
                     className="hover:bg-white/[0.02] transition-colors">
                     <td className="px-4 py-3">
-                      <p className="text-white font-medium truncate max-w-[160px]">{c.name}</p>
+                      <p className="font-medium truncate max-w-[160px]" style={{ color: "var(--text-primary)" }}>{c.name}</p>
                     </td>
                     <td className="px-4 py-3">
                       <span className="px-2 py-0.5 rounded-full text-xs"
@@ -150,12 +150,12 @@ export default function GoogleAdsView({ connected }: { connected: boolean }) {
                         {c.status.toLowerCase()}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-white font-medium">{fmt(c.spend)}</td>
-                    <td className="px-4 py-3" style={{ color: "#9ca3af" }}>{(c.impressions/1000).toFixed(1)}K</td>
-                    <td className="px-4 py-3" style={{ color: "#9ca3af" }}>{c.clicks.toLocaleString()}</td>
-                    <td className="px-4 py-3" style={{ color: "#9ca3af" }}>{c.ctr.toFixed(2)}%</td>
-                    <td className="px-4 py-3" style={{ color: "#9ca3af" }}>{fmt(c.avgCpc)}</td>
-                    <td className="px-4 py-3" style={{ color: "#9ca3af" }}>{c.conversions.toFixed(1)}</td>
+                    <td className="px-4 py-3 font-medium" style={{ color: "var(--text-primary)" }}>{fmt(c.spend)}</td>
+                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{(c.impressions/1000).toFixed(1)}K</td>
+                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{c.clicks.toLocaleString()}</td>
+                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{c.ctr.toFixed(2)}%</td>
+                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{fmt(c.avgCpc)}</td>
+                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{c.conversions.toFixed(1)}</td>
                     <td className="px-4 py-3">
                       <span style={{ color: c.roas >= 2 ? "#10b981" : c.roas >= 1 ? "#fbbf24" : "#ef4444" }}>
                         {c.roas.toFixed(2)}×

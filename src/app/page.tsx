@@ -48,7 +48,7 @@ export default async function Dashboard({
   const adSpendDisplay = merStats.adSpend > 0 ? fmt(merStats.adSpend) : "$0";
 
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "#0a0a0f" }}>
+    <div className="flex h-screen w-full overflow-hidden" style={{ background: "var(--bg-app)" }}>
       <Suspense>
         <Sidebar stores={stores} activePage="Overview" />
       </Suspense>
@@ -56,10 +56,10 @@ export default async function Dashboard({
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-white">
+            <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>
               {currentStore ? currentStore.name : "Overview"}
             </h1>
-            <p className="text-sm mt-1" style={{ color: "#6b7280" }}>
+            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
               {currentStore
                 ? `${currentStore.shop_domain} · ${currentStore.currency} · Last 30 days`
                 : "No store connected yet"}
@@ -112,11 +112,11 @@ export default async function Dashboard({
           <div className="col-span-2">
             <RevenueChart data={chartData} />
           </div>
-          <div className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-            <h2 className="text-sm font-semibold text-white mb-4">Channel Breakdown</h2>
+          <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Channel Breakdown</h2>
             {channels.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-32 gap-2">
-                <p className="text-sm" style={{ color: "#4b5563" }}>No channel data yet</p>
+                <p className="text-sm" style={{ color: "var(--text-faint)" }}>No channel data yet</p>
                 <p className="text-xs text-center" style={{ color: "#374151" }}>Sync Shopify data to see breakdown</p>
               </div>
             ) : (
@@ -124,21 +124,21 @@ export default async function Dashboard({
                 {channels.slice(0, 6).map((ch) => (
                   <div key={ch.channel}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs capitalize" style={{ color: "#9ca3af" }}>{ch.channel}</span>
-                      <span className="text-xs font-medium text-white">{fmt(ch.revenue)}</span>
+                      <span className="text-xs capitalize" style={{ color: "var(--text-secondary)" }}>{ch.channel}</span>
+                      <span className="text-xs font-medium" style={{ color: "var(--text-primary)" }}>{fmt(ch.revenue)}</span>
                     </div>
-                    <div className="h-1.5 rounded-full" style={{ background: "#1e1e2e" }}>
+                    <div className="h-1.5 rounded-full" style={{ background: "var(--border)" }}>
                       <div
                         className="h-1.5 rounded-full"
                         style={{ width: `${ch.pct}%`, background: "#6366f1" }}
                       />
                     </div>
-                    <p className="text-xs mt-0.5" style={{ color: "#4b5563" }}>{ch.pct.toFixed(1)}%</p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>{ch.pct.toFixed(1)}%</p>
                   </div>
                 ))}
               </div>
             )}
-            <div className="mt-4 pt-4" style={{ borderTop: "1px solid #1e1e2e" }}>
+            <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { label: "Shopify", color: "#10b981", connected: true },
@@ -148,7 +148,7 @@ export default async function Dashboard({
                 ].map((s) => (
                   <div key={s.label} className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: s.connected ? s.color : "#2a2a3a" }} />
-                    <span className="text-xs" style={{ color: s.connected ? "#9ca3af" : "#374151" }}>{s.label}</span>
+                    <span className="text-xs" style={{ color: s.connected ? "var(--text-secondary)" : "#374151" }}>{s.label}</span>
                   </div>
                 ))}
               </div>
@@ -158,19 +158,19 @@ export default async function Dashboard({
 
         {/* Quick Nav Grid */}
         <div className="mb-8">
-          <h2 className="text-sm font-semibold text-white mb-3">Quick Access</h2>
+          <h2 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Quick Access</h2>
           <div className="grid grid-cols-6 gap-3">
             {QUICK_NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className="rounded-xl p-4 flex flex-col gap-2 transition-all hover:scale-[1.02] hover:border-indigo-500/40 group"
-                style={{ background: "#111118", border: "1px solid #1e1e2e" }}
+                style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
               >
                 <span className="text-xl">{item.icon}</span>
                 <div>
-                  <p className="text-xs font-semibold text-white truncate">{item.label}</p>
-                  <p className="text-xs mt-0.5 truncate" style={{ color: "#4b5563" }}>{item.desc}</p>
+                  <p className="text-xs font-semibold truncate" style={{ color: "var(--text-primary)" }}>{item.label}</p>
+                  <p className="text-xs mt-0.5 truncate" style={{ color: "var(--text-faint)" }}>{item.desc}</p>
                 </div>
               </Link>
             ))}

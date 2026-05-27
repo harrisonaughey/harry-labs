@@ -63,14 +63,14 @@ export default function CampaignCalendar({ campaigns, filtered, days }: Props) {
   );
 
   return (
-    <div className="rounded-xl" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+    <div className="rounded-xl" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
       <div
         className="flex items-center justify-between px-5 py-4"
-        style={{ borderBottom: "1px solid #1e1e2e" }}
+        style={{ borderBottom: "1px solid var(--border)" }}
       >
         <div className="flex items-center gap-3">
-          <h2 className="text-sm font-semibold text-white">Campaign Schedule</h2>
-          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#1e1e30", color: "#6b7280" }}>
+          <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Campaign Schedule</h2>
+          <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#1e1e30", color: "var(--text-muted)" }}>
             {days === null ? "All time" : `Last ${days} days`}
           </span>
         </div>
@@ -82,7 +82,7 @@ export default function CampaignCalendar({ campaigns, filtered, days }: Props) {
               className="text-xs px-3 py-1.5 rounded-md capitalize"
               style={{
                 background: view === v ? "#1e1e30" : "transparent",
-                color: view === v ? "#a5b4fc" : "#6b7280",
+                color: view === v ? "#a5b4fc" : "var(--text-muted)",
               }}
             >
               {v}
@@ -96,14 +96,14 @@ export default function CampaignCalendar({ campaigns, filtered, days }: Props) {
           {listCampaigns.length === 0 ? (
             <div
               className="flex items-center justify-center py-12 text-sm"
-              style={{ color: "#4b5563" }}
+              style={{ color: "var(--text-faint)" }}
             >
               No campaigns in this range — try a wider date filter or sync Klaviyo
             </div>
           ) : (
             <table className="w-full text-xs">
               <thead>
-                <tr style={{ color: "#4b5563" }}>
+                <tr style={{ color: "var(--text-faint)" }}>
                   {["Campaign", "Date", "Delivered", "Opens", "Open Rate", "Click Rate", "Status"].map((h) => (
                     <th
                       key={h}
@@ -136,33 +136,33 @@ export default function CampaignCalendar({ campaigns, filtered, days }: Props) {
                   return (
                     <tr
                       key={c.campaign_id}
-                      style={{ borderTop: "1px solid #1a1a24" }}
+                      style={{ borderTop: "1px solid var(--border-subtle)" }}
                       className="hover:bg-white/[0.02] transition-colors"
                     >
                       <td className="px-5 py-3">
-                        <p className="text-white font-medium">{c.campaign_name}</p>
+                        <p className="font-medium" style={{ color: "var(--text-primary)" }}>{c.campaign_name}</p>
                         {c.subject && (
                           <p
-                            style={{ color: "#4b5563" }}
+                            style={{ color: "var(--text-faint)" }}
                             className="text-xs mt-0.5 truncate max-w-xs"
                           >
                             {c.subject}
                           </p>
                         )}
                       </td>
-                      <td className="px-5 py-3" style={{ color: "#9ca3af" }}>
+                      <td className="px-5 py-3" style={{ color: "var(--text-secondary)" }}>
                         {new Date(c.date).toLocaleDateString("en-AU", {
                           day: "numeric",
                           month: "short",
                           year: "numeric",
                         })}
                       </td>
-                      <td className="px-5 py-3 text-white">
+                      <td className="px-5 py-3" style={{ color: "var(--text-primary)" }}>
                         {Number(c.delivered) > 0
                           ? Number(c.delivered).toLocaleString()
                           : <span style={{ color: "#374151" }}>—</span>}
                       </td>
-                      <td className="px-5 py-3 text-white">
+                      <td className="px-5 py-3" style={{ color: "var(--text-primary)" }}>
                         {Number(c.opened) > 0
                           ? Number(c.opened).toLocaleString()
                           : <span style={{ color: "#374151" }}>—</span>}
@@ -199,11 +199,11 @@ export default function CampaignCalendar({ campaigns, filtered, days }: Props) {
                 } else setCurrentMonth((m) => m - 1);
               }}
               className="text-xs px-2 py-1 rounded"
-              style={{ color: "#6b7280" }}
+              style={{ color: "var(--text-muted)" }}
             >
               ← Prev
             </button>
-            <span className="text-sm font-medium text-white">{monthName}</span>
+            <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{monthName}</span>
             <button
               onClick={() => {
                 if (currentMonth === 11) {
@@ -212,7 +212,7 @@ export default function CampaignCalendar({ campaigns, filtered, days }: Props) {
                 } else setCurrentMonth((m) => m + 1);
               }}
               className="text-xs px-2 py-1 rounded"
-              style={{ color: "#6b7280" }}
+              style={{ color: "var(--text-muted)" }}
             >
               Next →
             </button>
@@ -223,7 +223,7 @@ export default function CampaignCalendar({ campaigns, filtered, days }: Props) {
               <div
                 key={d}
                 className="text-center text-xs py-1"
-                style={{ color: "#4b5563" }}
+                style={{ color: "var(--text-faint)" }}
               >
                 {d}
               </div>
@@ -245,13 +245,13 @@ export default function CampaignCalendar({ campaigns, filtered, days }: Props) {
                   key={i}
                   className="rounded-lg p-1 min-h-[52px]"
                   style={{
-                    background: isToday ? "#1e1e30" : "#0d0d14",
-                    border: `1px solid ${isToday ? "#3730a3" : "#1e1e2e"}`,
+                    background: isToday ? "#1e1e30" : "var(--bg-card-inner)",
+                    border: `1px solid ${isToday ? "#3730a3" : "var(--border)"}`,
                   }}
                 >
                   <span
                     className="text-xs block mb-1"
-                    style={{ color: isToday ? "#a5b4fc" : "#6b7280" }}
+                    style={{ color: isToday ? "#a5b4fc" : "var(--text-muted)" }}
                   >
                     {day}
                   </span>
@@ -270,7 +270,7 @@ export default function CampaignCalendar({ campaigns, filtered, days }: Props) {
                     );
                   })}
                   {dayCampaigns.length > 2 && (
-                    <span className="text-xs" style={{ color: "#4b5563" }}>
+                    <span className="text-xs" style={{ color: "var(--text-faint)" }}>
                       +{dayCampaigns.length - 2} more
                     </span>
                   )}

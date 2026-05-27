@@ -14,7 +14,7 @@ type Props = {
 export default function ConnectPrompt({ platform, icon, color, description, vars, docsUrl, consoleUrl, consoleLabel }: Props) {
   return (
     <div className="flex items-start justify-center pt-8">
-      <div className="w-full max-w-lg rounded-2xl p-8" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+      <div className="w-full max-w-lg rounded-2xl p-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         {/* Icon */}
         <div className="flex items-center gap-4 mb-6">
           <div
@@ -24,29 +24,29 @@ export default function ConnectPrompt({ platform, icon, color, description, vars
             {icon}
           </div>
           <div>
-            <h2 className="text-base font-semibold text-white">Connect {platform}</h2>
-            <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>{description}</p>
+            <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Connect {platform}</h2>
+            <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>{description}</p>
           </div>
         </div>
 
         {/* Env vars */}
         <div className="space-y-2 mb-6">
-          <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "#4b5563" }}>
+          <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "var(--text-faint)" }}>
             Required Environment Variables
           </p>
           {vars.map((v) => (
             <div
               key={v.key}
               className="flex items-center justify-between px-4 py-3 rounded-lg"
-              style={{ background: "#0d0d14", border: "1px solid #1e1e2e" }}
+              style={{ background: "var(--bg-card-inner)", border: "1px solid var(--border)" }}
             >
-              <span className="text-xs font-mono" style={{ color: "#6b7280" }}>{v.hint}</span>
+              <span className="text-xs font-mono" style={{ color: "var(--text-muted)" }}>{v.hint}</span>
               <span className="text-xs font-mono font-medium" style={{ color: "#a5b4fc" }}>{v.key}</span>
             </div>
           ))}
         </div>
 
-        <p className="text-xs mb-5" style={{ color: "#4b5563" }}>
+        <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>
           Add these keys to your Vercel environment variables, then redeploy.
         </p>
 
@@ -67,7 +67,7 @@ export default function ConnectPrompt({ platform, icon, color, description, vars
             target="_blank"
             rel="noopener noreferrer"
             className="flex-1 text-sm py-2.5 px-4 rounded-lg text-center transition-opacity hover:opacity-80"
-            style={{ background: "#1a1a24", color: "#9ca3af", border: "1px solid #2a2a3a" }}
+            style={{ background: "var(--bg-subtle)", color: "var(--text-secondary)", border: "1px solid #2a2a3a" }}
           >
             API Docs →
           </a>

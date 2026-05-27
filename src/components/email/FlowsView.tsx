@@ -68,36 +68,36 @@ export default function FlowsView({
           <div
             key={s.label}
             className="rounded-xl p-4"
-            style={{ background: "#111118", border: "1px solid #1e1e2e" }}
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs uppercase tracking-wider" style={{ color: "#6b7280" }}>
+              <span className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                 {s.label}
               </span>
               <span>{s.icon}</span>
             </div>
-            <p className="text-xl font-semibold text-white">{s.value}</p>
-            <p className="text-xs mt-1" style={{ color: "#4b5563" }}>{s.sub}</p>
+            <p className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>{s.value}</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>{s.sub}</p>
           </div>
         ))}
       </div>
 
       {/* Flow table */}
-      <div className="rounded-xl" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+      <div className="rounded-xl" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <div
           className="flex items-center justify-between px-5 py-4"
-          style={{ borderBottom: "1px solid #1e1e2e" }}
+          style={{ borderBottom: "1px solid var(--border)" }}
         >
           <div className="flex items-center gap-3">
-            <h2 className="text-sm font-semibold text-white">Live Flows</h2>
+            <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Live Flows</h2>
             <span
               className="text-xs px-2 py-0.5 rounded-full"
-              style={{ background: "#1e1e30", color: "#6b7280" }}
+              style={{ background: "#1e1e30", color: "var(--text-muted)" }}
             >
               {sorted.length} flows
             </span>
           </div>
-          <span className="text-xs" style={{ color: "#4b5563" }}>
+          <span className="text-xs" style={{ color: "var(--text-faint)" }}>
             Sorted by delivered emails ↓
           </span>
         </div>
@@ -105,14 +105,14 @@ export default function FlowsView({
         {sorted.length === 0 ? (
           <div
             className="flex items-center justify-center py-12 text-sm"
-            style={{ color: "#4b5563" }}
+            style={{ color: "var(--text-faint)" }}
           >
             No flow data — click Sync Klaviyo to load flows
           </div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr style={{ color: "#4b5563" }}>
+              <tr style={{ color: "var(--text-faint)" }}>
                 {[
                   "Flow",
                   "Trigger",
@@ -140,11 +140,11 @@ export default function FlowsView({
                 return (
                   <tr
                     key={f.flow_id}
-                    style={{ borderTop: "1px solid #1a1a24" }}
+                    style={{ borderTop: "1px solid var(--border-subtle)" }}
                     className="hover:bg-white/[0.02] transition-colors"
                   >
                     <td className="px-5 py-3">
-                      <p className="text-white font-medium">{f.flow_name}</p>
+                      <p className="font-medium" style={{ color: "var(--text-primary)" }}>{f.flow_name}</p>
                     </td>
                     <td className="px-5 py-3">
                       {f.trigger_type ? (
@@ -158,17 +158,17 @@ export default function FlowsView({
                         <span style={{ color: "#374151" }}>—</span>
                       )}
                     </td>
-                    <td className="px-5 py-3 text-white">
+                    <td className="px-5 py-3" style={{ color: "var(--text-primary)" }}>
                       {Number(f.recipients) > 0
                         ? Number(f.recipients).toLocaleString()
                         : <span style={{ color: "#374151" }}>—</span>}
                     </td>
-                    <td className="px-5 py-3 text-white">
+                    <td className="px-5 py-3" style={{ color: "var(--text-primary)" }}>
                       {Number(f.delivered) > 0
                         ? Number(f.delivered).toLocaleString()
                         : <span style={{ color: "#374151" }}>—</span>}
                     </td>
-                    <td className="px-5 py-3 text-white">
+                    <td className="px-5 py-3" style={{ color: "var(--text-primary)" }}>
                       {Number(f.opened) > 0
                         ? Number(f.opened).toLocaleString()
                         : <span style={{ color: "#374151" }}>—</span>}

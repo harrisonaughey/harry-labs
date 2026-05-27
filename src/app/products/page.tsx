@@ -23,7 +23,7 @@ export default async function ProductsPage() {
   const [stores, products] = await Promise.all([getStores(), getProducts()]);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "#0a0a0f" }}>
+    <div className="flex h-screen w-full overflow-hidden" style={{ background: "var(--bg-app)" }}>
       <Suspense>
         <Sidebar stores={stores} activePage="Products" />
       </Suspense>
@@ -32,8 +32,8 @@ export default async function ProductsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-white">Products</h1>
-            <p className="text-sm mt-1" style={{ color: "#6b7280" }}>
+            <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>Products</h1>
+            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
               {products.length} products synced · margin calculator
             </p>
           </div>

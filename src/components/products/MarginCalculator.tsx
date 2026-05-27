@@ -43,15 +43,15 @@ function Row({ label, value, sub, color, bold, border }:
   return (
     <div
       className={`flex items-center justify-between py-3 ${border ? "mt-2 pt-4" : ""}`}
-      style={{ borderTop: border ? "1px solid #1e1e2e" : undefined }}
+      style={{ borderTop: border ? "1px solid var(--border)" : undefined }}
     >
       <div>
-        <span className="text-sm" style={{ color: bold ? "#e5e7eb" : "#9ca3af" }}>{label}</span>
-        {sub && <span className="text-xs ml-2" style={{ color: "#4b5563" }}>{sub}</span>}
+        <span className="text-sm" style={{ color: bold ? "var(--text-primary)" : "var(--text-secondary)" }}>{label}</span>
+        {sub && <span className="text-xs ml-2" style={{ color: "var(--text-faint)" }}>{sub}</span>}
       </div>
       <span
         className={`text-sm ${bold ? "font-semibold" : "font-medium"}`}
-        style={{ color: color ?? (bold ? "#ffffff" : "#d1d5db") }}
+        style={{ color: color ?? (bold ? "var(--text-primary)" : "var(--text-secondary)") }}
       >
         {value}
       </span>
@@ -118,20 +118,20 @@ export default function MarginCalculator({ products }: { products: Product[] }) 
   // Input helpers
   const numInput = (val: number, setter: (n: number) => void, suffix?: string, prefix?: string) => (
     <div className="relative flex items-center">
-      {prefix && <span className="absolute left-3 text-sm" style={{ color: "#6b7280" }}>{prefix}</span>}
+      {prefix && <span className="absolute left-3 text-sm" style={{ color: "var(--text-muted)" }}>{prefix}</span>}
       <input
         type="number" min={0} step="0.01"
         value={val === 0 ? "" : val}
         onChange={e => setter(parseFloat(e.target.value) || 0)}
-        className="w-full rounded-lg px-3 py-2.5 text-sm text-white outline-none focus:ring-1"
+        className="w-full rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-1"
         style={{
-          background: "#0d0d14", border: "1px solid #1e1e2e",
+          background: "var(--bg-card-inner)", border: "1px solid var(--border)", color: "var(--text-primary)",
           paddingLeft: prefix ? "1.75rem" : "0.75rem",
           paddingRight: suffix ? "2rem" : "0.75rem",
           WebkitAppearance: "none",
         }}
       />
-      {suffix && <span className="absolute right-3 text-sm" style={{ color: "#6b7280" }}>{suffix}</span>}
+      {suffix && <span className="absolute right-3 text-sm" style={{ color: "var(--text-muted)" }}>{suffix}</span>}
     </div>
   );
 
@@ -143,24 +143,24 @@ export default function MarginCalculator({ products }: { products: Product[] }) 
       {/* Top KPI bar */}
       <div
         className="rounded-xl px-6 py-5 mb-6 flex items-center justify-between"
-        style={{ background: "#111118", border: "1px solid #1e1e2e" }}
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
       >
         <div>
-          <p className="text-xs uppercase tracking-wider mb-1" style={{ color: "#6b7280" }}>Net profit per order</p>
+          <p className="text-xs uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>Net profit per order</p>
           <p className="text-3xl font-bold" style={{ color: profitColor }}>{fmt(sym, calc.netProfit)}</p>
           <p className="text-sm mt-1" style={{ color: marginColor }}>{calc.netMargin.toFixed(1)}% margin</p>
         </div>
         <div className="text-right">
-          <p className="text-xs uppercase tracking-wider mb-1" style={{ color: "#6b7280" }}>Break-even CAC</p>
-          <p className="text-2xl font-bold text-white">{fmt(sym, calc.breakEven)}</p>
+          <p className="text-xs uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>Break-even CAC</p>
+          <p className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>{fmt(sym, calc.breakEven)}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-6">
         {/* ── Left: Inputs ── */}
-        <div className="rounded-xl p-6" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+        <div className="rounded-xl p-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-sm font-semibold text-white">Inputs</h3>
+            <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Inputs</h3>
             {/* Currency pills */}
             <div className="flex gap-1 flex-wrap justify-end">
               {CURRENCIES.map(c => (
@@ -168,7 +168,7 @@ export default function MarginCalculator({ products }: { products: Product[] }) 
                   className="text-xs px-2 py-1 rounded-md font-medium transition-all"
                   style={{
                     background: currency === c.code ? "#ffffff" : "transparent",
-                    color:      currency === c.code ? "#000000" : "#6b7280",
+                    color:      currency === c.code ? "#000000" : "var(--text-muted)",
                   }}>
                   {c.code}
                 </button>
@@ -179,14 +179,14 @@ export default function MarginCalculator({ products }: { products: Product[] }) 
           {/* Product selector */}
           {products.length > 0 && (
             <div className="mb-5">
-              <label className="block text-xs font-medium uppercase tracking-wider mb-2" style={{ color: "#6b7280" }}>
+              <label className="block text-xs font-medium uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
                 Load from product
               </label>
               <select
                 value={selectedProd}
                 onChange={e => handleProductSelect(e.target.value)}
-                className="w-full rounded-lg px-3 py-2.5 text-sm text-white outline-none"
-                style={{ background: "#0d0d14", border: "1px solid #1e1e2e" }}
+                className="w-full rounded-lg px-3 py-2.5 text-sm outline-none"
+                style={{ background: "var(--bg-card-inner)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
               >
                 <option value="">— Select a product —</option>
                 {products.map(p => (
@@ -197,22 +197,22 @@ export default function MarginCalculator({ products }: { products: Product[] }) 
           )}
 
           {/* SALE */}
-          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#4b5563" }}>Sale</p>
+          <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--text-faint)" }}>Sale</p>
           <div className="space-y-4 mb-5">
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: "#9ca3af" }}>Selling price</label>
+              <label className="block text-xs mb-1.5" style={{ color: "var(--text-secondary)" }}>Selling price</label>
               {numInput(sellingPrice, setSellingPrice, sym)}
             </div>
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: "#9ca3af" }}>Offer type</label>
+              <label className="block text-xs mb-1.5" style={{ color: "var(--text-secondary)" }}>Offer type</label>
               <div className="grid grid-cols-3 gap-2">
                 {OFFER_TYPES.map((o, i) => (
                   <button key={o.label} onClick={() => setOfferIdx(i)}
                     className="py-2 rounded-lg text-sm font-medium transition-all"
                     style={{
-                      background: offerIdx === i ? "#ffffff" : "#0d0d14",
-                      color:      offerIdx === i ? "#000000" : "#6b7280",
-                      border:     `1px solid ${offerIdx === i ? "#ffffff" : "#1e1e2e"}`,
+                      background: offerIdx === i ? "#ffffff" : "var(--bg-card-inner)",
+                      color:      offerIdx === i ? "#000000" : "var(--text-muted)",
+                      border:     `1px solid ${offerIdx === i ? "#ffffff" : "var(--border)"}`,
                     }}>
                     {o.label}
                   </button>
@@ -220,31 +220,31 @@ export default function MarginCalculator({ products }: { products: Product[] }) 
               </div>
             </div>
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: "#9ca3af" }}>Qty per order</label>
+              <label className="block text-xs mb-1.5" style={{ color: "var(--text-secondary)" }}>Qty per order</label>
               {numInput(unitQty, setUnitQty, "units")}
             </div>
           </div>
 
           {/* SALES TAX */}
-          <div style={{ borderTop: "1px solid #1e1e2e", paddingTop: "1.25rem", marginBottom: "1.25rem" }}>
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "1.25rem", marginBottom: "1.25rem" }}>
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#4b5563" }}>
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-faint)" }}>
                 Sales tax ({currency})
               </p>
               {!taxInclusive && (
-                <span className="text-xs" style={{ color: "#4b5563" }}>Tax added at checkout — does not affect margin</span>
+                <span className="text-xs" style={{ color: "var(--text-faint)" }}>Tax added at checkout — does not affect margin</span>
               )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: "#9ca3af" }}>Inclusive in price?</label>
-                <div className="flex rounded-lg overflow-hidden" style={{ border: "1px solid #1e1e2e" }}>
+                <label className="block text-xs mb-1.5" style={{ color: "var(--text-secondary)" }}>Inclusive in price?</label>
+                <div className="flex rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
                   {[{ label: "Yes (VAT/GST)", val: true }, { label: "No (US-style)", val: false }].map(opt => (
                     <button key={opt.label} onClick={() => setTaxInclusive(opt.val)}
                       className="flex-1 py-2 text-xs font-medium transition-all"
                       style={{
                         background: taxInclusive === opt.val ? "#ffffff" : "transparent",
-                        color:      taxInclusive === opt.val ? "#000000" : "#6b7280",
+                        color:      taxInclusive === opt.val ? "#000000" : "var(--text-muted)",
                       }}>
                       {opt.label}
                     </button>
@@ -252,7 +252,7 @@ export default function MarginCalculator({ products }: { products: Product[] }) 
                 </div>
               </div>
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: "#9ca3af" }}>
+                <label className="block text-xs mb-1.5" style={{ color: "var(--text-secondary)" }}>
                   Sales tax rate {taxInclusive ? "(included)" : "(added at checkout)"}
                 </label>
                 {numInput(taxRate, setTaxRate, "%")}
@@ -261,41 +261,41 @@ export default function MarginCalculator({ products }: { products: Product[] }) 
           </div>
 
           {/* COSTS */}
-          <div style={{ borderTop: "1px solid #1e1e2e", paddingTop: "1.25rem", marginBottom: "1.25rem" }}>
-            <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#4b5563" }}>
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "1.25rem", marginBottom: "1.25rem" }}>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--text-faint)" }}>
               Costs ({currency} per order)
             </p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: "#9ca3af" }}>Product cost</label>
+                <label className="block text-xs mb-1.5" style={{ color: "var(--text-secondary)" }}>Product cost</label>
                 {numInput(productCost, setProductCost, sym)}
               </div>
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: "#9ca3af" }}>Shipping</label>
+                <label className="block text-xs mb-1.5" style={{ color: "var(--text-secondary)" }}>Shipping</label>
                 {numInput(shipping, setShipping, sym)}
               </div>
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: "#9ca3af" }}>Payment fee</label>
+                <label className="block text-xs mb-1.5" style={{ color: "var(--text-secondary)" }}>Payment fee</label>
                 {numInput(paymentFee, setPaymentFee, "%")}
               </div>
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: "#9ca3af" }}>Other costs</label>
+                <label className="block text-xs mb-1.5" style={{ color: "var(--text-secondary)" }}>Other costs</label>
                 {numInput(otherCosts, setOtherCosts, sym)}
               </div>
             </div>
           </div>
 
           {/* MARKETING */}
-          <div style={{ borderTop: "1px solid #1e1e2e", paddingTop: "1.25rem" }}>
-            <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#4b5563" }}>Marketing</p>
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "1.25rem" }}>
+            <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--text-faint)" }}>Marketing</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: "#9ca3af" }}>CPA</label>
+                <label className="block text-xs mb-1.5" style={{ color: "var(--text-secondary)" }}>CPA</label>
                 {numInput(cpa, setCpa, sym)}
               </div>
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: "#9ca3af" }}>
-                  Scrub <span style={{ color: "#4b5563" }}>% of CPA we don't pay</span>
+                <label className="block text-xs mb-1.5" style={{ color: "var(--text-secondary)" }}>
+                  Scrub <span style={{ color: "var(--text-faint)" }}>% of CPA we don't pay</span>
                 </label>
                 {numInput(scrub, setScrub, "%")}
               </div>
@@ -304,18 +304,18 @@ export default function MarginCalculator({ products }: { products: Product[] }) 
 
           <button onClick={reset}
             className="mt-5 text-xs hover:opacity-70 transition-opacity"
-            style={{ color: "#4b5563" }}>
+            style={{ color: "var(--text-faint)" }}>
             Reset to defaults
           </button>
         </div>
 
         {/* ── Right: Breakdown ── */}
-        <div className="rounded-xl p-6" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-          <h3 className="text-sm font-semibold text-white mb-4">Breakdown</h3>
+        <div className="rounded-xl p-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+          <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Breakdown</h3>
 
           <Row label="Selling price" value={fmt(sym, sellingPrice)} bold />
 
-          <div style={{ borderTop: "1px solid #1e1e2e", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.5rem", marginTop: "0.5rem" }}>
             <Row label="COGS" value={`– ${fmt(sym, calc.cogs)}`} />
             <Row label="Shipping" value={`– ${fmt(sym, calc.ship)}`} />
             <Row label={`Payment fee (${paymentFee}%)`} value={`– ${fmt(sym, calc.payFee)}`} />
@@ -323,30 +323,30 @@ export default function MarginCalculator({ products }: { products: Product[] }) 
             <Row label="Total cost" value={`– ${fmt(sym, calc.totalCost)}`} bold />
           </div>
 
-          <div style={{ borderTop: "1px solid #1e1e2e", paddingTop: "0.5rem", marginTop: "0.75rem" }}>
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.5rem", marginTop: "0.75rem" }}>
             <Row label="Gross profit" value={fmt(sym, calc.grossProfit)} bold
-              color={calc.grossProfit >= 0 ? "#ffffff" : "#ef4444"} />
+              color={calc.grossProfit >= 0 ? "var(--text-primary)" : "#ef4444"} />
             <Row label="Gross margin" value={`${calc.grossMargin.toFixed(1)}%`}
-              color={calc.grossMargin >= 0 ? "#9ca3af" : "#ef4444"} />
+              color={calc.grossMargin >= 0 ? "var(--text-secondary)" : "#ef4444"} />
           </div>
 
-          <div style={{ borderTop: "1px solid #1e1e2e", paddingTop: "0.5rem", marginTop: "0.75rem" }}>
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.5rem", marginTop: "0.75rem" }}>
             <Row label="Marketing CPA" value={`– ${fmt(sym, cpa)}`} />
             <Row label={`Scrub savings (${scrub}%)`} value={`+ ${fmt(sym, calc.scrubSavings)}`}
               color="#10b981" />
             <Row label="Effective CAC" value={`– ${fmt(sym, calc.effectiveCac)}`} />
           </div>
 
-          <div style={{ borderTop: "1px solid #1e1e2e", paddingTop: "0.75rem", marginTop: "0.75rem" }}>
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: "0.75rem", marginTop: "0.75rem" }}>
             <Row label="Net profit" value={fmt(sym, calc.netProfit)} bold color={profitColor} />
             <Row label="Net margin" value={`${calc.netMargin.toFixed(1)}%`} color={marginColor} />
           </div>
 
           {/* Break-even box */}
-          <div className="mt-6 rounded-xl p-4" style={{ background: "#0d0d14", border: "1px solid #1e1e2e" }}>
-            <p className="text-xs uppercase tracking-wider mb-1" style={{ color: "#4b5563" }}>Break-even CAC</p>
-            <p className="text-xl font-bold text-white">{fmt(sym, calc.breakEven)}</p>
-            <p className="text-xs mt-1" style={{ color: "#4b5563" }}>
+          <div className="mt-6 rounded-xl p-4" style={{ background: "var(--bg-card-inner)", border: "1px solid var(--border)" }}>
+            <p className="text-xs uppercase tracking-wider mb-1" style={{ color: "var(--text-faint)" }}>Break-even CAC</p>
+            <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>{fmt(sym, calc.breakEven)}</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>
               Max you can spend on marketing per order before losing money
             </p>
           </div>
@@ -365,8 +365,8 @@ export default function MarginCalculator({ products }: { products: Product[] }) 
               const c          = scenNet >= 0 ? "#10b981" : "#ef4444";
               return (
                 <div key={s.label} className="rounded-lg p-3 text-center"
-                  style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-                  <p className="text-xs mb-1" style={{ color: "#4b5563" }}>{s.label}</p>
+                  style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+                  <p className="text-xs mb-1" style={{ color: "var(--text-faint)" }}>{s.label}</p>
                   <p className="text-sm font-semibold" style={{ color: c }}>{fmt(sym, scenNet)}</p>
                   <p className="text-xs" style={{ color: c }}>{scenMargin.toFixed(1)}%</p>
                 </div>

@@ -13,15 +13,15 @@ type Props = {
 
 export default function PageLayout({ stores, activePage, title, subtitle, headerRight, children }: Props) {
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "#0a0a0f" }}>
+    <div className="flex h-screen w-full overflow-hidden" style={{ background: "var(--bg-app)" }}>
       <Suspense>
         <Sidebar stores={stores} activePage={activePage} />
       </Suspense>
       <main className="flex-1 overflow-y-auto px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-white">{title}</h1>
-            {subtitle && <p className="text-sm mt-1" style={{ color: "#6b7280" }}>{subtitle}</p>}
+            <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>{title}</h1>
+            {subtitle && <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>{subtitle}</p>}
           </div>
           {headerRight && <div className="flex items-center gap-3">{headerRight}</div>}
         </div>

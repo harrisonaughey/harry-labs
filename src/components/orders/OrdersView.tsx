@@ -27,12 +27,12 @@ const BADGE: Record<string, { bg: string; text: string }> = {
   cancelled:   { bg: "#ef444420", text: "#ef4444" },
   refunded:    { bg: "#ef444420", text: "#ef4444" },
   voided:      { bg: "#ef444420", text: "#ef4444" },
-  unfulfilled: { bg: "#1e1e2e",   text: "#6b7280" },
+  unfulfilled: { bg: "var(--border)",   text: "var(--text-muted)" },
 };
 
 function Badge({ label }: { label: string | null }) {
   if (!label) return null;
-  const s = BADGE[label.toLowerCase()] ?? { bg: "#1e1e2e", text: "#6b7280" };
+  const s = BADGE[label.toLowerCase()] ?? { bg: "var(--border)", text: "var(--text-muted)" };
   return (
     <span className="px-2 py-0.5 rounded-full text-xs font-medium capitalize"
       style={{ background: s.bg, color: s.text }}>
@@ -98,8 +98,8 @@ export default function OrdersView({ orders }: { orders: Order[] }) {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
           <input
-            className="text-sm px-3 py-2 rounded-lg outline-none text-white w-64"
-            style={{ background: "#111118", border: "1px solid #1e1e2e" }}
+            className="text-sm px-3 py-2 rounded-lg outline-none w-64"
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
             placeholder="Search order # or customer…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -112,8 +112,8 @@ export default function OrdersView({ orders }: { orders: Order[] }) {
                 className="text-xs px-3 py-1.5 rounded-md font-medium transition-all"
                 style={{
                   background: filter === f ? "#1e1e30" : "transparent",
-                  color:      filter === f ? "#a5b4fc" : "#6b7280",
-                  border:     `1px solid ${filter === f ? "#3730a3" : "#1e1e2e"}`,
+                  color:      filter === f ? "#a5b4fc" : "var(--text-muted)",
+                  border:     `1px solid ${filter === f ? "#3730a3" : "var(--border)"}`,
                 }}
               >
                 {f}
@@ -122,11 +122,11 @@ export default function OrdersView({ orders }: { orders: Order[] }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs" style={{ color: "#4b5563" }}>{filtered.length} orders</span>
+          <span className="text-xs" style={{ color: "var(--text-faint)" }}>{filtered.length} orders</span>
           <button
             onClick={exportCsv}
             className="text-xs px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80"
-            style={{ background: "#1a1a24", color: "#9ca3af", border: "1px solid #2a2a3a" }}
+            style={{ background: "var(--bg-subtle)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}
           >
             Export CSV
           </button>
@@ -134,10 +134,10 @@ export default function OrdersView({ orders }: { orders: Order[] }) {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl overflow-hidden" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+      <div className="rounded-xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <table className="w-full text-xs">
           <thead>
-            <tr style={{ color: "#4b5563", borderBottom: "1px solid #1e1e2e" }}>
+            <tr style={{ color: "var(--text-faint)", borderBottom: "1px solid var(--border)" }}>
               {["Order", "Date", "Customer", "Total", "Status", "Fulfillment", "Financial"].map((h) => (
                 <th key={h} className="px-4 py-3 text-left font-medium uppercase tracking-wider">{h}</th>
               ))}
@@ -146,7 +146,7 @@ export default function OrdersView({ orders }: { orders: Order[] }) {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-16 text-center text-sm" style={{ color: "#4b5563" }}>
+                <td colSpan={7} className="px-4 py-16 text-center text-sm" style={{ color: "var(--text-faint)" }}>
                   {orders.length === 0 ? "No orders yet — sync Shopify to import" : "No orders match your filters"}
                 </td>
               </tr>
@@ -154,18 +154,18 @@ export default function OrdersView({ orders }: { orders: Order[] }) {
               filtered.map((o) => {
                 const name = [o.customers?.first_name, o.customers?.last_name].filter(Boolean).join(" ") || "Guest";
                 return (
-                  <tr key={o.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderTop: "1px solid #1a1a24" }}>
+                  <tr key={o.id} className="hover:bg-white/[0.02] transition-colors" style={{ borderTop: "1px solid var(--border-subtle)" }}>
                     <td className="px-4 py-3">
-                      <span className="text-white font-medium">#{o.order_number}</span>
+                      <span className="font-medium" style={{ color: "var(--text-primary)" }}>#{o.order_number}</span>
                     </td>
-                    <td className="px-4 py-3" style={{ color: "#9ca3af" }}>
+                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>
                       {o.created_at ? new Date(o.created_at).toLocaleDateString("en-AU") : "—"}
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-white">{name}</p>
-                      <p className="text-xs mt-0.5" style={{ color: "#4b5563" }}>{o.customer_email}</p>
+                      <p style={{ color: "var(--text-primary)" }}>{name}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>{o.customer_email}</p>
                     </td>
-                    <td className="px-4 py-3 text-white font-medium">{fmt(o.total_price)}</td>
+                    <td className="px-4 py-3 font-medium" style={{ color: "var(--text-primary)" }}>{fmt(o.total_price)}</td>
                     <td className="px-4 py-3"><Badge label={o.status} /></td>
                     <td className="px-4 py-3"><Badge label={o.fulfillment_status} /></td>
                     <td className="px-4 py-3"><Badge label={o.financial_status} /></td>

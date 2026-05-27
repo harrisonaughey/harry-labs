@@ -45,29 +45,29 @@ export default function ConnectCard({ platform }: Props) {
   return (
     <div className="flex flex-col items-center justify-center py-20">
       <div className="w-full max-w-lg rounded-2xl p-8 text-center"
-        style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+        style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4"
           style={{ background: `${cfg.color}20`, border: `1px solid ${cfg.color}40` }}>
           {cfg.icon}
         </div>
-        <h2 className="text-xl font-semibold text-white mb-2">Connect {cfg.name}</h2>
-        <p className="text-sm mb-8" style={{ color: "#6b7280" }}>{cfg.description}</p>
+        <h2 className="text-xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>Connect {cfg.name}</h2>
+        <p className="text-sm mb-8" style={{ color: "var(--text-muted)" }}>{cfg.description}</p>
 
         <div className="text-left space-y-3 mb-8">
           {cfg.vars.map((v) => (
-            <div key={v.key} className="rounded-xl p-4" style={{ background: "#0d0d14", border: "1px solid #1e1e2e" }}>
+            <div key={v.key} className="rounded-xl p-4" style={{ background: "var(--bg-card-inner)", border: "1px solid var(--border)" }}>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-white">{v.label}</span>
-                <code className="text-xs px-2 py-0.5 rounded" style={{ background: "#1e1e2e", color: "#818cf8" }}>
+                <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{v.label}</span>
+                <code className="text-xs px-2 py-0.5 rounded" style={{ background: "var(--border)", color: "#818cf8" }}>
                   {v.key}
                 </code>
               </div>
-              <p className="text-xs" style={{ color: "#4b5563" }}>{v.hint}</p>
+              <p className="text-xs" style={{ color: "var(--text-faint)" }}>{v.hint}</p>
             </div>
           ))}
         </div>
 
-        <p className="text-xs mb-4" style={{ color: "#4b5563" }}>
+        <p className="text-xs mb-4" style={{ color: "var(--text-faint)" }}>
           Add these keys to your Vercel environment variables, then redeploy.
         </p>
 
@@ -79,7 +79,7 @@ export default function ConnectCard({ platform }: Props) {
           </a>
           <a href={cfg.docsUrl} target="_blank" rel="noopener noreferrer"
             className="text-sm px-4 py-2 rounded-lg font-medium hover:opacity-80 transition-opacity"
-            style={{ background: "transparent", color: "#6b7280", border: "1px solid #1e1e2e" }}>
+            style={{ background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
             API Docs →
           </a>
         </div>

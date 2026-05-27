@@ -11,15 +11,15 @@ export default async function ContentPage() {
   const metaConnected = isMetaConnected();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "#0a0a0f" }}>
+    <div className="flex h-screen w-full overflow-hidden" style={{ background: "var(--bg-app)" }}>
       <Suspense>
         <Sidebar stores={stores} activePage="Content" />
       </Suspense>
       <main className="flex-1 overflow-y-auto px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-white">Content Analytics</h1>
-            <p className="text-sm mt-1" style={{ color: "#6b7280" }}>
+            <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>Content Analytics</h1>
+            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
               Meta · Instagram · TikTok · YouTube · Organic Social
             </p>
           </div>

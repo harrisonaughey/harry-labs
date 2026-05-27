@@ -10,15 +10,15 @@ export default function KpiCard({ label, value, change, positive, icon }: Props)
   return (
     <div
       className="rounded-xl p-5"
-      style={{ background: "#111118", border: "1px solid #1e1e2e" }}
+      style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "#6b7280" }}>
+        <span className="text-xs font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
           {label}
         </span>
         <span className="text-lg">{icon}</span>
       </div>
-      <p className="text-2xl font-semibold text-white mb-1">{value}</p>
+      <p className="text-2xl font-semibold mb-1" style={{ color: "var(--text-primary)" }}>{value}</p>
       <span
         className="text-xs font-medium px-2 py-0.5 rounded-full"
         style={{

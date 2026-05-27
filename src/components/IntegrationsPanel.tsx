@@ -28,10 +28,10 @@ export default function IntegrationsPanel({ syncLog }: { syncLog: SyncEntry[] })
   return (
     <div
       className="rounded-xl p-5 h-full"
-      style={{ background: "#111118", border: "1px solid #1e1e2e" }}
+      style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
     >
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-sm font-semibold text-white">Integrations</h2>
+        <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Integrations</h2>
         <button className="text-xs px-2 py-1 rounded-md" style={{ background: "#1e1e30", color: "#a5b4fc" }}>
           Manage
         </button>
@@ -53,8 +53,8 @@ export default function IntegrationsPanel({ syncLog }: { syncLog: SyncEntry[] })
               <div className="flex items-center gap-2.5">
                 <span className="text-base">{meta.icon}</span>
                 <div>
-                  <p className="text-xs font-medium text-white capitalize">{name}</p>
-                  <p className="text-xs" style={{ color: "#4b5563" }}>{metric}</p>
+                  <p className="text-xs font-medium capitalize" style={{ color: "var(--text-primary)" }}>{name}</p>
+                  <p className="text-xs" style={{ color: "var(--text-faint)" }}>{metric}</p>
                 </div>
               </div>
               <span

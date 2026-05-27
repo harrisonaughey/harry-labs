@@ -72,19 +72,19 @@ export default function EmailMetrics({ campaigns }: Props) {
         <div
           key={s.label}
           className="rounded-xl p-4"
-          style={{ background: "#111118", border: "1px solid #1e1e2e" }}
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
         >
           <div className="flex items-center justify-between mb-2">
             <span
               className="text-xs uppercase tracking-wider"
-              style={{ color: "#6b7280" }}
+              style={{ color: "var(--text-muted)" }}
             >
               {s.label}
             </span>
             <span>{s.icon}</span>
           </div>
-          <p className="text-xl font-semibold text-white">{s.value}</p>
-          <p className="text-xs mt-1" style={{ color: "#4b5563" }}>
+          <p className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>{s.value}</p>
+          <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>
             {s.sub}
           </p>
         </div>

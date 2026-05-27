@@ -276,8 +276,8 @@ export default function IntegrationsView({ connectedIds }: { connectedIds: strin
           placeholder="Search integrations…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full rounded-lg px-3 py-2 text-sm text-white outline-none mb-4"
-          style={{ background: "#111118", border: "1px solid #1e1e2e" }}
+          className="w-full rounded-lg px-3 py-2 text-sm outline-none mb-4"
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
         />
         <div className="space-y-1">
           {filtered.map(i => {
@@ -295,8 +295,8 @@ export default function IntegrationsView({ connectedIds }: { connectedIds: strin
               >
                 <span className="text-lg flex-shrink-0">{i.icon}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{i.name}</p>
-                  <p className="text-xs" style={{ color: CATEGORY_COLORS[i.category] ?? "#6b7280" }}>
+                  <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>{i.name}</p>
+                  <p className="text-xs" style={{ color: CATEGORY_COLORS[i.category] ?? "var(--text-muted)" }}>
                     {i.category}
                   </p>
                 </div>
@@ -311,16 +311,16 @@ export default function IntegrationsView({ connectedIds }: { connectedIds: strin
       {/* ── Right: Detail panel ── */}
       <div className="flex-1 min-w-0 overflow-y-auto">
         {/* Header */}
-        <div className="rounded-xl p-6 mb-4" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+        <div className="rounded-xl p-6 mb-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-                style={{ background: "#1e1e2e" }}>
+                style={{ background: "var(--border)" }}>
                 {current.icon}
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold text-white">{current.name}</h2>
+                  <h2 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>{current.name}</h2>
                   <span className="text-xs px-2 py-0.5 rounded-full font-medium"
                     style={{ background: statusCfg.bg, color: statusCfg.text }}>
                     {statusCfg.label}
@@ -337,18 +337,18 @@ export default function IntegrationsView({ connectedIds }: { connectedIds: strin
               View Docs →
             </a>
           </div>
-          <p className="text-sm" style={{ color: "#9ca3af" }}>{current.description}</p>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>{current.description}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-4">
           {/* Powers */}
-          <div className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#6b7280" }}>
+          <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>
               Powers in Dashboard
             </h3>
             <ul className="space-y-1.5">
               {current.powers.map(p => (
-                <li key={p} className="flex items-center gap-2 text-sm" style={{ color: "#d1d5db" }}>
+                <li key={p} className="flex items-center gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
                   <span style={{ color: statusCfg.dot }}>✓</span> {p}
                 </li>
               ))}
@@ -356,15 +356,15 @@ export default function IntegrationsView({ connectedIds }: { connectedIds: strin
           </div>
 
           {/* Env vars */}
-          <div className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "#6b7280" }}>
+          <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>
               Environment Variables
             </h3>
             <div className="space-y-3">
               {current.envVars.map(v => (
-                <div key={v.key} className="rounded-lg p-3" style={{ background: "#0d0d14", border: "1px solid #1e1e2e" }}>
+                <div key={v.key} className="rounded-lg p-3" style={{ background: "var(--bg-card-inner)", border: "1px solid var(--border)" }}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium text-white">{v.label}</span>
+                    <span className="text-xs font-medium" style={{ color: "var(--text-primary)" }}>{v.label}</span>
                     <button onClick={() => copyKey(v.key)}
                       className="flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-all hover:opacity-80"
                       style={{ background: "#1e1e30", color: copied === v.key ? "#10b981" : "#818cf8" }}>
@@ -372,7 +372,7 @@ export default function IntegrationsView({ connectedIds }: { connectedIds: strin
                       <span>{copied === v.key ? "✓" : "⧉"}</span>
                     </button>
                   </div>
-                  <p className="text-xs" style={{ color: "#4b5563" }}>{v.hint}</p>
+                  <p className="text-xs" style={{ color: "var(--text-faint)" }}>{v.hint}</p>
                   {v.secret && (
                     <span className="text-xs mt-1 inline-block" style={{ color: "#374151" }}>🔒 Keep secret — Vercel only</span>
                   )}
@@ -383,8 +383,8 @@ export default function IntegrationsView({ connectedIds }: { connectedIds: strin
         </div>
 
         {/* Setup steps */}
-        <div className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-          <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "#6b7280" }}>
+        <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+          <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>
             Setup Guide
           </h3>
           <div className="space-y-4">
@@ -395,8 +395,8 @@ export default function IntegrationsView({ connectedIds }: { connectedIds: strin
                   {i + 1}
                 </div>
                 <div className="flex-1 pt-0.5">
-                  <p className="text-sm font-medium text-white mb-1">{step.title}</p>
-                  <p className="text-sm" style={{ color: "#6b7280" }}>{step.body}</p>
+                  <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>{step.title}</p>
+                  <p className="text-sm" style={{ color: "var(--text-muted)" }}>{step.body}</p>
                 </div>
               </div>
             ))}
@@ -411,7 +411,7 @@ export default function IntegrationsView({ connectedIds }: { connectedIds: strin
               <p className="text-sm font-medium" style={{ color: "#a5b4fc" }}>
                 Ready to connect?
               </p>
-              <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>
+              <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
                 Add the environment variables to Vercel, then redeploy.
               </p>
             </div>

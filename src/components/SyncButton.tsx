@@ -42,7 +42,7 @@ export default function SyncButton({ shopDomain }: { shopDomain?: string }) {
 
   return (
     <div className="flex items-center gap-2">
-      {result && <span className="text-xs" style={{ color: "#9ca3af" }}>{result}</span>}
+      {result && <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{result}</span>}
       <button
         onClick={handleSync}
         disabled={syncing}

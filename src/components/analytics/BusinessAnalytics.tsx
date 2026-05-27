@@ -24,10 +24,10 @@ function fmt(n: number) {
 
 function Kpi({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
   return (
-    <div className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-      <p className="text-xs uppercase tracking-wider mb-3" style={{ color: "#6b7280" }}>{label}</p>
-      <p className="text-2xl font-semibold" style={{ color: color ?? "white" }}>{value}</p>
-      {sub && <p className="text-xs mt-1" style={{ color: "#4b5563" }}>{sub}</p>}
+    <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+      <p className="text-xs uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>{label}</p>
+      <p className="text-2xl font-semibold" style={{ color: color ?? "var(--text-primary)" }}>{value}</p>
+      {sub && <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>{sub}</p>}
     </div>
   );
 }
@@ -58,8 +58,8 @@ export default function BusinessAnalytics({ revenue, orderCount, aov, adSpend, m
     <div>
       {/* Period selector */}
       <div className="flex items-center gap-2 mb-6">
-        <p className="text-xs" style={{ color: "#6b7280" }}>Period:</p>
-        <div className="flex gap-1 p-1 rounded-lg" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+        <p className="text-xs" style={{ color: "var(--text-muted)" }}>Period:</p>
+        <div className="flex gap-1 p-1 rounded-lg" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
           {PERIODS.map((p) => (
             <button
               key={p}
@@ -67,14 +67,14 @@ export default function BusinessAnalytics({ revenue, orderCount, aov, adSpend, m
               className="text-xs px-3 py-1.5 rounded-md font-medium transition-all"
               style={{
                 background: period === p ? "#6366f1" : "transparent",
-                color: period === p ? "white" : "#6b7280",
+                color: period === p ? "white" : "var(--text-muted)",
               }}
             >
               {p}
             </button>
           ))}
         </div>
-        <p className="text-xs ml-2" style={{ color: "#4b5563" }}>
+        <p className="text-xs ml-2" style={{ color: "var(--text-faint)" }}>
           {period === "7d" ? "Last 7 days" : period === "30d" ? "Last 30 days" : "Last 90 days"}
         </p>
       </div>
@@ -91,9 +91,9 @@ export default function BusinessAnalytics({ revenue, orderCount, aov, adSpend, m
 
       <div className="grid grid-cols-2 gap-6 mb-8">
         {/* Revenue Waterfall */}
-        <div className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-          <h2 className="text-sm font-semibold text-white mb-1">Revenue Waterfall</h2>
-          <p className="text-xs mb-5" style={{ color: "#6b7280" }}>Revenue → expenses → net profit</p>
+        <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+          <h2 className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Revenue Waterfall</h2>
+          <p className="text-xs mb-5" style={{ color: "var(--text-muted)" }}>Revenue → expenses → net profit</p>
           <div className="space-y-3">
             {WATERFALL_ITEMS.map((item, i) => {
               const d = waterfallData[i];
@@ -101,12 +101,12 @@ export default function BusinessAnalytics({ revenue, orderCount, aov, adSpend, m
               return (
                 <div key={item.key}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs" style={{ color: "#9ca3af" }}>{item.label}</span>
+                    <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{item.label}</span>
                     <span className="text-xs font-semibold" style={{ color: item.color }}>
                       {d.value < 0 ? "-" : ""}{fmt(Math.abs(d.value))}
                     </span>
                   </div>
-                  <div className="h-2 rounded-full" style={{ background: "#1e1e2e" }}>
+                  <div className="h-2 rounded-full" style={{ background: "var(--border)" }}>
                     <div
                       className="h-2 rounded-full transition-all"
                       style={{ width: `${barPct}%`, background: item.color }}
@@ -116,8 +116,8 @@ export default function BusinessAnalytics({ revenue, orderCount, aov, adSpend, m
               );
             })}
           </div>
-          <div className="mt-4 pt-4 flex items-center justify-between" style={{ borderTop: "1px solid #1e1e2e" }}>
-            <span className="text-xs" style={{ color: "#6b7280" }}>Net margin</span>
+          <div className="mt-4 pt-4 flex items-center justify-between" style={{ borderTop: "1px solid var(--border)" }}>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Net margin</span>
             <span className="text-sm font-bold" style={{ color: netMargin >= 10 ? "#10b981" : netMargin >= 0 ? "#fbbf24" : "#ef4444" }}>
               {netMargin.toFixed(1)}%
             </span>
@@ -125,12 +125,12 @@ export default function BusinessAnalytics({ revenue, orderCount, aov, adSpend, m
         </div>
 
         {/* Channel Attribution */}
-        <div className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-          <h2 className="text-sm font-semibold text-white mb-1">Channel Attribution</h2>
-          <p className="text-xs mb-5" style={{ color: "#6b7280" }}>Revenue contribution by source</p>
+        <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+          <h2 className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Channel Attribution</h2>
+          <p className="text-xs mb-5" style={{ color: "var(--text-muted)" }}>Revenue contribution by source</p>
           {channels.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2">
-              <p className="text-sm" style={{ color: "#4b5563" }}>No channel data</p>
+              <p className="text-sm" style={{ color: "var(--text-faint)" }}>No channel data</p>
               <p className="text-xs" style={{ color: "#374151" }}>Sync Shopify to populate</p>
             </div>
           ) : (
@@ -139,14 +139,14 @@ export default function BusinessAnalytics({ revenue, orderCount, aov, adSpend, m
                 <div key={ch.channel} className="flex items-center gap-3">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs capitalize text-white">{ch.channel}</span>
-                      <span className="text-xs" style={{ color: "#9ca3af" }}>{fmt(ch.revenue)}</span>
+                      <span className="text-xs capitalize" style={{ color: "var(--text-primary)" }}>{ch.channel}</span>
+                      <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{fmt(ch.revenue)}</span>
                     </div>
-                    <div className="h-1.5 rounded-full" style={{ background: "#1e1e2e" }}>
+                    <div className="h-1.5 rounded-full" style={{ background: "var(--border)" }}>
                       <div className="h-1.5 rounded-full" style={{ width: `${ch.pct}%`, background: "#6366f1" }} />
                     </div>
                   </div>
-                  <span className="text-xs w-10 text-right" style={{ color: "#6b7280" }}>{ch.pct.toFixed(0)}%</span>
+                  <span className="text-xs w-10 text-right" style={{ color: "var(--text-muted)" }}>{ch.pct.toFixed(0)}%</span>
                 </div>
               ))}
             </div>
@@ -155,14 +155,14 @@ export default function BusinessAnalytics({ revenue, orderCount, aov, adSpend, m
       </div>
 
       {/* Channel Detail Table */}
-      <div className="rounded-xl overflow-hidden" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-        <div className="px-5 py-4" style={{ borderBottom: "1px solid #1e1e2e" }}>
-          <h2 className="text-sm font-semibold text-white">Channel Detail</h2>
-          <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>Spend · Revenue · ROAS · Orders by channel</p>
+      <div className="rounded-xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+          <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Channel Detail</h2>
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Spend · Revenue · ROAS · Orders by channel</p>
         </div>
         <table className="w-full text-xs">
           <thead>
-            <tr style={{ color: "#4b5563" }}>
+            <tr style={{ color: "var(--text-faint)" }}>
               {["Channel", "Revenue", "Spend", "ROAS", "Orders", "Share"].map((h) => (
                 <th key={h} className="px-5 py-3 text-left font-medium uppercase tracking-wider">{h}</th>
               ))}
@@ -171,18 +171,18 @@ export default function BusinessAnalytics({ revenue, orderCount, aov, adSpend, m
           <tbody>
             {channels.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-5 py-12 text-center text-sm" style={{ color: "#4b5563" }}>
+                <td colSpan={6} className="px-5 py-12 text-center text-sm" style={{ color: "var(--text-faint)" }}>
                   No data — sync Shopify to populate
                 </td>
               </tr>
             ) : (
               channels.map((ch) => (
-                <tr key={ch.channel} style={{ borderTop: "1px solid #1a1a24" }} className="hover:bg-white/[0.02]">
+                <tr key={ch.channel} style={{ borderTop: "1px solid var(--border-subtle)" }} className="hover:bg-white/[0.02]">
                   <td className="px-5 py-3">
-                    <span className="text-white capitalize font-medium">{ch.channel}</span>
+                    <span className="capitalize font-medium" style={{ color: "var(--text-primary)" }}>{ch.channel}</span>
                   </td>
-                  <td className="px-5 py-3 text-white font-medium">{fmt(ch.revenue)}</td>
-                  <td className="px-5 py-3" style={{ color: "#9ca3af" }}>
+                  <td className="px-5 py-3 font-medium" style={{ color: "var(--text-primary)" }}>{fmt(ch.revenue)}</td>
+                  <td className="px-5 py-3" style={{ color: "var(--text-secondary)" }}>
                     {ch.spend > 0 ? fmt(ch.spend) : <span style={{ color: "#374151" }}>—</span>}
                   </td>
                   <td className="px-5 py-3">
@@ -194,13 +194,13 @@ export default function BusinessAnalytics({ revenue, orderCount, aov, adSpend, m
                       <span style={{ color: "#374151" }}>—</span>
                     )}
                   </td>
-                  <td className="px-5 py-3" style={{ color: "#9ca3af" }}>{ch.orders}</td>
+                  <td className="px-5 py-3" style={{ color: "var(--text-secondary)" }}>{ch.orders}</td>
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-16 h-1.5 rounded-full" style={{ background: "#1e1e2e" }}>
+                      <div className="w-16 h-1.5 rounded-full" style={{ background: "var(--border)" }}>
                         <div className="h-1.5 rounded-full" style={{ width: `${ch.pct}%`, background: "#6366f1" }} />
                       </div>
-                      <span style={{ color: "#6b7280" }}>{ch.pct.toFixed(1)}%</span>
+                      <span style={{ color: "var(--text-muted)" }}>{ch.pct.toFixed(1)}%</span>
                     </div>
                   </td>
                 </tr>
@@ -211,11 +211,11 @@ export default function BusinessAnalytics({ revenue, orderCount, aov, adSpend, m
       </div>
 
       {/* MER explanation */}
-      <div className="mt-6 rounded-xl p-4 flex items-start gap-3" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+      <div className="mt-6 rounded-xl p-4 flex items-start gap-3" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <span className="text-lg flex-shrink-0">ℹ</span>
         <div>
-          <p className="text-xs font-semibold text-white mb-1">About MER (Marketing Efficiency Ratio)</p>
-          <p className="text-xs" style={{ color: "#6b7280" }}>
+          <p className="text-xs font-semibold mb-1" style={{ color: "var(--text-primary)" }}>About MER (Marketing Efficiency Ratio)</p>
+          <p className="text-xs" style={{ color: "var(--text-muted)" }}>
             MER = Total Revenue ÷ Total Ad Spend across all channels. A MER of 3× means every $1 spent on ads returns $3 in revenue.
             Connect Meta Ads and Google Ads to see real spend data. COGS estimated at 55% of revenue.
           </p>

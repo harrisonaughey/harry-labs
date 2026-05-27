@@ -16,13 +16,13 @@ const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
 
 function KpiCard({ label, value, sub, icon, color }: { label: string; value: string; sub?: string; icon: string; color?: string }) {
   return (
-    <div className="rounded-xl p-4" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+    <div className="rounded-xl p-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs uppercase tracking-wider" style={{ color: "#6b7280" }}>{label}</span>
+        <span className="text-xs uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{label}</span>
         <span className="text-base">{icon}</span>
       </div>
-      <p className="text-xl font-semibold" style={{ color: color ?? "#ffffff" }}>{value}</p>
-      {sub && <p className="text-xs mt-1" style={{ color: "#4b5563" }}>{sub}</p>}
+      <p className="text-xl font-semibold" style={{ color: color ?? "var(--text-primary)" }}>{value}</p>
+      {sub && <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>{sub}</p>}
     </div>
   );
 }
@@ -83,15 +83,15 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
               className="text-xs px-3 py-1.5 rounded-md font-medium transition-all"
               style={{
                 background: presetIdx === i ? "#1e1e30" : "transparent",
-                color:      presetIdx === i ? "#a5b4fc" : "#6b7280",
-                border:     `1px solid ${presetIdx === i ? "#3730a3" : "#1e1e2e"}`,
+                color:      presetIdx === i ? "#a5b4fc" : "var(--text-muted)",
+                border:     `1px solid ${presetIdx === i ? "#3730a3" : "var(--border)"}`,
               }}>
               {p.label}
             </button>
           ))}
         </div>
         <div className="flex items-center gap-3">
-          {actionMsg && <span className="text-xs" style={{ color: "#9ca3af" }}>{actionMsg}</span>}
+          {actionMsg && <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{actionMsg}</span>}
           <button onClick={load} disabled={loading}
             className="text-xs px-3 py-1.5 rounded-md transition-all hover:opacity-80 disabled:opacity-50"
             style={{ background: "#1e1e30", color: "#a5b4fc", border: "1px solid #3730a3" }}>
@@ -127,25 +127,25 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
       </div>
 
       {/* Campaign Table */}
-      <div className="rounded-xl" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid #1e1e2e" }}>
+      <div className="rounded-xl" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="flex items-center gap-3">
-            <h2 className="text-sm font-semibold text-white">Campaigns</h2>
-            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#1e1e30", color: "#6b7280" }}>
+            <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Campaigns</h2>
+            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#1e1e30", color: "var(--text-muted)" }}>
               {campaigns.length} campaigns
             </span>
           </div>
-          <span className="text-xs" style={{ color: "#4b5563" }}>Click status to pause/activate</span>
+          <span className="text-xs" style={{ color: "var(--text-faint)" }}>Click status to pause/activate</span>
         </div>
 
         {loading && campaigns.length === 0 ? (
-          <div className="py-12 text-center text-sm" style={{ color: "#4b5563" }}>Loading campaigns…</div>
+          <div className="py-12 text-center text-sm" style={{ color: "var(--text-faint)" }}>Loading campaigns…</div>
         ) : campaigns.length === 0 ? (
-          <div className="py-12 text-center text-sm" style={{ color: "#4b5563" }}>No campaign data for this period</div>
+          <div className="py-12 text-center text-sm" style={{ color: "var(--text-faint)" }}>No campaign data for this period</div>
         ) : (
           <table className="w-full text-xs">
             <thead>
-              <tr style={{ color: "#4b5563" }}>
+              <tr style={{ color: "var(--text-faint)" }}>
                 {["Campaign", "Status", "Spend", "Impressions", "Clicks", "CTR", "CPC", "Purchases", "ROAS"].map(h => (
                   <th key={h} className="px-4 py-3 text-left font-medium uppercase tracking-wider">{h}</th>
                 ))}
@@ -153,13 +153,13 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
             </thead>
             <tbody>
               {campaigns.sort((a: any, b: any) => b.spend - a.spend).map((c: any) => {
-                const s = STATUS_STYLE[c.status] ?? { bg: "#6b728020", text: "#9ca3af" };
+                const s = STATUS_STYLE[c.status] ?? { bg: "#6b728020", text: "var(--text-secondary)" };
                 return (
-                  <tr key={c.id} style={{ borderTop: "1px solid #1a1a24" }}
+                  <tr key={c.id} style={{ borderTop: "1px solid var(--border-subtle)" }}
                     className="hover:bg-white/[0.02] transition-colors">
                     <td className="px-4 py-3">
-                      <p className="text-white font-medium truncate max-w-[180px]">{c.name}</p>
-                      <p className="text-xs mt-0.5" style={{ color: "#4b5563" }}>{c.objective?.replace(/_/g, " ")}</p>
+                      <p className="font-medium truncate max-w-[180px]" style={{ color: "var(--text-primary)" }}>{c.name}</p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>{c.objective?.replace(/_/g, " ")}</p>
                     </td>
                     <td className="px-4 py-3">
                       <button onClick={() => toggleCampaign(c.id, c.status)}
@@ -168,12 +168,12 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
                         {c.status.toLowerCase()}
                       </button>
                     </td>
-                    <td className="px-4 py-3 text-white font-medium">{fmt(c.spend)}</td>
-                    <td className="px-4 py-3" style={{ color: "#9ca3af" }}>{(c.impressions/1000).toFixed(1)}K</td>
-                    <td className="px-4 py-3" style={{ color: "#9ca3af" }}>{c.clicks.toLocaleString()}</td>
-                    <td className="px-4 py-3" style={{ color: "#9ca3af" }}>{(c.ctr*100).toFixed(2)}%</td>
-                    <td className="px-4 py-3" style={{ color: "#9ca3af" }}>{fmt(c.cpc)}</td>
-                    <td className="px-4 py-3" style={{ color: "#9ca3af" }}>{c.purchases}</td>
+                    <td className="px-4 py-3 font-medium" style={{ color: "var(--text-primary)" }}>{fmt(c.spend)}</td>
+                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{(c.impressions/1000).toFixed(1)}K</td>
+                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{c.clicks.toLocaleString()}</td>
+                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{(c.ctr*100).toFixed(2)}%</td>
+                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{fmt(c.cpc)}</td>
+                    <td className="px-4 py-3" style={{ color: "var(--text-secondary)" }}>{c.purchases}</td>
                     <td className="px-4 py-3">
                       <span style={{ color: c.roas >= 2 ? "#10b981" : c.roas >= 1 ? "#fbbf24" : "#ef4444" }}>
                         {c.roas.toFixed(2)}×
@@ -188,9 +188,9 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
       </div>
 
       {/* Quick Actions Panel */}
-      <div className="mt-6 rounded-xl p-6" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-        <h3 className="text-sm font-semibold text-white mb-1">Quick Actions</h3>
-        <p className="text-xs mb-4" style={{ color: "#4b5563" }}>Manage campaigns directly from this dashboard</p>
+      <div className="mt-6 rounded-xl p-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <h3 className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Quick Actions</h3>
+        <p className="text-xs mb-4" style={{ color: "var(--text-faint)" }}>Manage campaigns directly from this dashboard</p>
         <div className="grid grid-cols-3 gap-3">
           {[
             { label: "Pause all active", icon: "⏸", action: "pause_all",  color: "#fbbf24" },

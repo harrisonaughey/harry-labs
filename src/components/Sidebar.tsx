@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import StoreSwitcher from "./StoreSwitcher";
+import { useTheme } from "@/components/ThemeProvider";
 import type { Store } from "@/lib/stores";
 
 type NavItem = {
@@ -64,6 +65,7 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
   const router    = useRouter();
   const searchParams = useSearchParams();
   const currentStoreId = searchParams.get("store");
+  const { theme, toggle } = useTheme();
 
   // Determine active href from pathname (client-side routing)
   function isActive(href: string) {
@@ -78,7 +80,7 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
   return (
     <aside
       className="w-56 flex flex-col flex-shrink-0 h-full"
-      style={{ background: "#0d0d14", borderRight: "1px solid #1e1e2e" }}
+      style={{ background: "var(--bg-sidebar)", borderRight: "1px solid var(--border)" }}
     >
       {/* Logo */}
       <div className="px-5 py-5 flex-shrink-0">
@@ -90,8 +92,8 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
             H
           </div>
           <div>
-            <p className="font-semibold text-white text-sm leading-none">Harry Labs</p>
-            <p className="text-xs mt-0.5" style={{ color: "#4b5563" }}>thinkle.com.au</p>
+            <p className="font-semibold text-sm leading-none" style={{ color: "var(--text-primary)" }}>Harry Labs</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>thinkle.com.au</p>
           </div>
         </div>
       </div>
@@ -101,7 +103,7 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
         <StoreSwitcher stores={stores} currentStoreId={currentStoreId} />
       </div>
 
-      <div className="mx-3 mb-3 flex-shrink-0" style={{ height: "1px", background: "#1e1e2e" }} />
+      <div className="mx-3 mb-3 flex-shrink-0" style={{ height: "1px", background: "var(--border)" }} />
 
       {/* Nav groups */}
       <nav className="flex-1 px-3 overflow-y-auto pb-4 space-y-5">
@@ -109,7 +111,7 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
           <div key={group.group}>
             <p
               className="text-xs font-semibold uppercase tracking-widest px-2 mb-1.5"
-              style={{ color: "#2d2d42" }}
+              style={{ color: "var(--text-nav-label)" }}
             >
               {group.group}
             </p>
@@ -122,7 +124,7 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
                     onClick={() => handleNav(item.href)}
                     className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all text-left group relative"
                     style={{
-                      background: active ? "#1a1a2e" : "transparent",
+                      background: active ? "var(--bg-subtle)" : "transparent",
                       color: active ? "#a5b4fc" : "#6b7280",
                     }}
                   >
@@ -143,8 +145,26 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
         ))}
       </nav>
 
-      {/* User */}
-      <div className="px-4 py-4 flex-shrink-0" style={{ borderTop: "1px solid #1e1e2e" }}>
+      {/* Footer: theme toggle + user */}
+      <div className="px-4 py-4 flex-shrink-0 space-y-3" style={{ borderTop: "1px solid var(--border)" }}>
+        {/* Theme toggle */}
+        <button
+          onClick={toggle}
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all"
+          style={{
+            background: "var(--bg-subtle)",
+            color: "var(--text-muted)",
+            border: "1px solid var(--border)",
+          }}
+        >
+          <span className="text-sm w-4 text-center flex-shrink-0">
+            {theme === "dark" ? "☀" : "🌙"}
+          </span>
+          <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+        </button>
+
+        {/* User */}
         <div className="flex items-center gap-3">
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
@@ -153,8 +173,8 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
             H
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-white truncate">Harrison</p>
-            <p className="text-xs truncate" style={{ color: "#4b5563" }}>Admin</p>
+            <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>Harrison</p>
+            <p className="text-xs truncate" style={{ color: "var(--text-faint)" }}>Admin</p>
           </div>
         </div>
       </div>

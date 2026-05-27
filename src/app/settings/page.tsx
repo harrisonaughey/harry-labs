@@ -44,8 +44,8 @@ export default async function SettingsPage() {
       <div className="grid grid-cols-2 gap-6">
         {/* Store info */}
         <div className="space-y-4">
-          <div className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-            <h2 className="text-sm font-semibold text-white mb-4">Store</h2>
+          <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Store</h2>
             {store ? (
               <div className="space-y-3">
                 {[
@@ -55,9 +55,9 @@ export default async function SettingsPage() {
                   { label: "Last Sync", value: lastSync?.synced_at ? new Date(lastSync.synced_at).toLocaleString("en-AU") : "Never" },
                 ].map((row) => (
                   <div key={row.label} className="flex items-center justify-between py-2"
-                    style={{ borderBottom: "1px solid #1a1a24" }}>
-                    <span className="text-xs" style={{ color: "#6b7280" }}>{row.label}</span>
-                    <span className="text-xs text-white">{row.value}</span>
+                    style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>{row.label}</span>
+                    <span className="text-xs" style={{ color: "var(--text-primary)" }}>{row.value}</span>
                   </div>
                 ))}
                 <div className="pt-2">
@@ -68,7 +68,7 @@ export default async function SettingsPage() {
               </div>
             ) : (
               <div className="text-center py-6">
-                <p className="text-sm mb-3" style={{ color: "#4b5563" }}>No store connected</p>
+                <p className="text-sm mb-3" style={{ color: "var(--text-faint)" }}>No store connected</p>
                 <a href="/api/shopify/install?shop=thinkle-com-au.myshopify.com"
                   className="text-sm px-4 py-2 rounded-lg inline-block hover:opacity-80 transition-opacity"
                   style={{ background: "#6366f1", color: "white" }}>
@@ -79,26 +79,26 @@ export default async function SettingsPage() {
           </div>
 
           {/* User */}
-          <div className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-            <h2 className="text-sm font-semibold text-white mb-4">User</h2>
+          <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>User</h2>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
                 style={{ background: "#6366f1" }}>H</div>
               <div>
-                <p className="text-sm text-white font-medium">Harrison</p>
-                <p className="text-xs" style={{ color: "#6b7280" }}>Admin · thinkle.com.au</p>
+                <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Harrison</p>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Admin · thinkle.com.au</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* API connections */}
-        <div className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+        <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-white">API Connections</h2>
+            <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>API Connections</h2>
             <a href="https://vercel.com/dashboard" target="_blank" rel="noopener noreferrer"
               className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80 transition-opacity"
-              style={{ background: "#1a1a24", color: "#a5b4fc", border: "1px solid #2a2a3a" }}>
+              style={{ background: "var(--bg-subtle)", color: "#a5b4fc", border: "1px solid #2a2a3a" }}>
               Edit in Vercel →
             </a>
           </div>
@@ -107,11 +107,11 @@ export default async function SettingsPage() {
               const connected = isConnected(int.envVars);
               return (
                 <div key={int.key} className="flex items-center justify-between px-3 py-2.5 rounded-lg"
-                  style={{ background: "#0d0d14" }}>
-                  <span className="text-xs text-white">{int.label}</span>
+                  style={{ background: "var(--bg-card-inner)" }}>
+                  <span className="text-xs" style={{ color: "var(--text-primary)" }}>{int.label}</span>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full" style={{ background: connected ? "#10b981" : "#2a2a3a" }} />
-                    <span className="text-xs" style={{ color: connected ? "#10b981" : "#4b5563" }}>
+                    <span className="text-xs" style={{ color: connected ? "#10b981" : "var(--text-faint)" }}>
                       {connected ? "Connected" : "Not configured"}
                     </span>
                   </div>

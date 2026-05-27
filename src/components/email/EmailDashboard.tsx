@@ -34,7 +34,7 @@ export default function EmailDashboard({ campaigns, flows }: Props) {
       {/* ── Tab bar + date pills ─────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-6">
         {/* Tabs */}
-        <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+        <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
           {(["campaigns", "flows"] as const).map((t) => (
             <button
               key={t}
@@ -42,7 +42,7 @@ export default function EmailDashboard({ campaigns, flows }: Props) {
               className="text-sm px-4 py-1.5 rounded-md font-medium capitalize transition-all"
               style={{
                 background: tab === t ? "#1e1e30" : "transparent",
-                color:      tab === t ? "#a5b4fc" : "#6b7280",
+                color:      tab === t ? "#a5b4fc" : "var(--text-muted)",
               }}
             >
               {t === "campaigns" ? `📧 Campaigns` : `🔁 Flows`}
@@ -52,7 +52,7 @@ export default function EmailDashboard({ campaigns, flows }: Props) {
 
         {/* Date range pills */}
         <div className="flex items-center gap-2">
-          <span className="text-xs" style={{ color: "#4b5563" }}>Range:</span>
+          <span className="text-xs" style={{ color: "var(--text-faint)" }}>Range:</span>
           {RANGES.map(({ label, days: d }) => (
             <button
               key={label}
@@ -60,8 +60,8 @@ export default function EmailDashboard({ campaigns, flows }: Props) {
               className="text-xs px-3 py-1.5 rounded-md font-medium transition-all"
               style={{
                 background: days === d ? "#1e1e30" : "transparent",
-                color:      days === d ? "#a5b4fc" : "#6b7280",
-                border: `1px solid ${days === d ? "#3730a3" : "#1e1e2e"}`,
+                color:      days === d ? "#a5b4fc" : "var(--text-muted)",
+                border: `1px solid ${days === d ? "#3730a3" : "var(--border)"}`,
               }}
             >
               {label}

@@ -41,16 +41,16 @@ export default function ProductsList({ products }: { products: Product[] }) {
   };
 
   return (
-    <div className="rounded-xl" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+    <div className="rounded-xl" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
       {/* Toolbar */}
-      <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: "1px solid #1e1e2e" }}>
+      <div className="flex items-center gap-3 px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
         <input
           type="text"
           placeholder="Search products or SKU…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 rounded-lg px-3 py-2 text-sm text-white outline-none focus:ring-1"
-          style={{ background: "#0d0d14", border: "1px solid #1e1e2e", maxWidth: 280 }}
+          className="flex-1 rounded-lg px-3 py-2 text-sm outline-none focus:ring-1"
+          style={{ background: "var(--bg-card-inner)", border: "1px solid var(--border)", color: "var(--text-primary)", maxWidth: 280 }}
         />
         <div className="flex gap-1">
           {(["all", "active", "draft", "archived"] as const).map(s => (
@@ -58,23 +58,23 @@ export default function ProductsList({ products }: { products: Product[] }) {
               className="text-xs px-3 py-1.5 rounded-md capitalize transition-all"
               style={{
                 background: statusFilter === s ? "#1e1e30" : "transparent",
-                color:      statusFilter === s ? "#a5b4fc" : "#6b7280",
+                color:      statusFilter === s ? "#a5b4fc" : "var(--text-muted)",
                 border:     `1px solid ${statusFilter === s ? "#3730a3" : "transparent"}`,
               }}>
-              {s} <span style={{ color: "#4b5563" }}>({counts[s]})</span>
+              {s} <span style={{ color: "var(--text-faint)" }}>({counts[s]})</span>
             </button>
           ))}
         </div>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="py-16 text-center text-sm" style={{ color: "#4b5563" }}>
+        <div className="py-16 text-center text-sm" style={{ color: "var(--text-faint)" }}>
           {products.length === 0 ? "No products synced yet — run a Shopify sync" : "No products match your filter"}
         </div>
       ) : (
         <table className="w-full text-xs">
           <thead>
-            <tr style={{ color: "#4b5563" }}>
+            <tr style={{ color: "var(--text-faint)" }}>
               {["Product", "SKU", "Price", "Compare at", "Inventory", "Type", "Status"].map(h => (
                 <th key={h} className="px-5 py-3 text-left font-medium uppercase tracking-wider">{h}</th>
               ))}
@@ -87,20 +87,20 @@ export default function ProductsList({ products }: { products: Product[] }) {
                 ? Math.round(((p.compare_at_price - p.price) / p.compare_at_price) * 100)
                 : null;
               return (
-                <tr key={p.id} style={{ borderTop: "1px solid #1a1a24" }}
+                <tr key={p.id} style={{ borderTop: "1px solid var(--border-subtle)" }}
                   className="hover:bg-white/[0.02] transition-colors">
                   <td className="px-5 py-3">
-                    <p className="text-white font-medium truncate max-w-[200px]">{p.title}</p>
-                    {p.vendor && <p className="text-xs mt-0.5" style={{ color: "#4b5563" }}>{p.vendor}</p>}
+                    <p className="font-medium truncate max-w-[200px]" style={{ color: "var(--text-primary)" }}>{p.title}</p>
+                    {p.vendor && <p className="text-xs mt-0.5" style={{ color: "var(--text-faint)" }}>{p.vendor}</p>}
                   </td>
-                  <td className="px-5 py-3" style={{ color: "#6b7280" }}>{p.sku ?? "—"}</td>
-                  <td className="px-5 py-3 text-white font-medium">
+                  <td className="px-5 py-3" style={{ color: "var(--text-muted)" }}>{p.sku ?? "—"}</td>
+                  <td className="px-5 py-3 font-medium" style={{ color: "var(--text-primary)" }}>
                     ${p.price.toFixed(2)}
                   </td>
                   <td className="px-5 py-3">
                     {p.compare_at_price ? (
                       <span>
-                        <span style={{ color: "#6b7280" }}>${p.compare_at_price.toFixed(2)}</span>
+                        <span style={{ color: "var(--text-muted)" }}>${p.compare_at_price.toFixed(2)}</span>
                         {discount && (
                           <span className="ml-1.5 text-xs px-1 rounded"
                             style={{ background: "#10b98120", color: "#10b981" }}>
@@ -115,7 +115,7 @@ export default function ProductsList({ products }: { products: Product[] }) {
                       {p.inventory_quantity.toLocaleString()}
                     </span>
                   </td>
-                  <td className="px-5 py-3" style={{ color: "#6b7280" }}>{p.product_type ?? "—"}</td>
+                  <td className="px-5 py-3" style={{ color: "var(--text-muted)" }}>{p.product_type ?? "—"}</td>
                   <td className="px-5 py-3">
                     <span className="px-2 py-0.5 rounded-full capitalize font-medium"
                       style={{ background: style.bg, color: style.text }}>

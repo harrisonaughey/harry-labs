@@ -13,7 +13,7 @@ export default async function TrafficPage() {
   const googleConnected = isGoogleConnected();
 
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "#0a0a0f" }}>
+    <div className="flex h-screen w-full overflow-hidden" style={{ background: "var(--bg-app)" }}>
       <Suspense>
         <Sidebar stores={stores} activePage="Paid Ads" />
       </Suspense>
@@ -22,8 +22,8 @@ export default async function TrafficPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-white">Paid Advertising</h1>
-            <p className="text-sm mt-1" style={{ color: "#6b7280" }}>
+            <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>Paid Advertising</h1>
+            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
               Meta · Google · TikTok · Instagram — paid acquisition
             </p>
           </div>
@@ -33,21 +33,21 @@ export default async function TrafficPage() {
               <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
                 style={{
                   background: metaConnected   ? "#10b98115" : "#6b728015",
-                  border:     `1px solid ${metaConnected   ? "#10b98140" : "#1e1e2e"}`,
-                  color:      metaConnected   ? "#10b981" : "#4b5563",
+                  border:     `1px solid ${metaConnected   ? "#10b98140" : "var(--border)"}`,
+                  color:      metaConnected   ? "#10b981" : "var(--text-faint)",
                 }}>
                 <span className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: metaConnected ? "#10b981" : "#4b5563" }} />
+                  style={{ background: metaConnected ? "#10b981" : "var(--text-faint)" }} />
                 Meta {metaConnected ? "connected" : "not connected"}
               </span>
               <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
                 style={{
                   background: googleConnected ? "#10b98115" : "#6b728015",
-                  border:     `1px solid ${googleConnected ? "#10b98140" : "#1e1e2e"}`,
-                  color:      googleConnected ? "#10b981" : "#4b5563",
+                  border:     `1px solid ${googleConnected ? "#10b98140" : "var(--border)"}`,
+                  color:      googleConnected ? "#10b981" : "var(--text-faint)",
                 }}>
                 <span className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: googleConnected ? "#10b981" : "#4b5563" }} />
+                  style={{ background: googleConnected ? "#10b981" : "var(--text-faint)" }} />
                 Google {googleConnected ? "connected" : "not connected"}
               </span>
             </div>

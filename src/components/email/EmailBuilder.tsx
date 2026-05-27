@@ -190,7 +190,7 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
           <div
             className="w-full rounded-2xl p-6 overflow-y-auto"
             style={{
-              background: "#111118",
+              background: "var(--bg-card)",
               border: "1px solid #2a2a3a",
               maxWidth: aiResult ? "800px" : "512px",
               maxHeight: "90vh",
@@ -198,12 +198,12 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-base font-semibold text-white">New Email Campaign</h2>
-              <button onClick={handleClose} style={{ color: "#6b7280" }}>✕</button>
+              <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>New Email Campaign</h2>
+              <button onClick={handleClose} style={{ color: "var(--text-muted)" }}>✕</button>
             </div>
 
             {/* Tab switcher */}
-            <div className="flex gap-1 mb-5 p-1 rounded-lg" style={{ background: "#1a1a24" }}>
+            <div className="flex gap-1 mb-5 p-1 rounded-lg" style={{ background: "var(--bg-subtle)" }}>
               {(["manual", "ai"] as const).map((t) => (
                 <button
                   key={t}
@@ -211,7 +211,7 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                   className="flex-1 text-sm py-1.5 rounded-md font-medium transition-all"
                   style={{
                     background: tab === t ? "#6366f1" : "transparent",
-                    color: tab === t ? "white" : "#9ca3af",
+                    color: tab === t ? "white" : "var(--text-secondary)",
                   }}
                 >
                   {t === "manual" ? "Manual" : "✦ AI Build"}
@@ -223,20 +223,20 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
             {tab === "manual" && (
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>Campaign Name</label>
+                  <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>Campaign Name</label>
                   <input
-                    className="w-full text-sm px-3 py-2 rounded-lg outline-none text-white"
-                    style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }}
+                    className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                    style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a", color: "var(--text-primary)" }}
                     placeholder="e.g. May Newsletter"
                     value={form.name}
                     onChange={(e) => setField("name", e.target.value)}
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>Subject Line</label>
+                  <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>Subject Line</label>
                   <input
-                    className="w-full text-sm px-3 py-2 rounded-lg outline-none text-white"
-                    style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }}
+                    className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                    style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a", color: "var(--text-primary)" }}
                     placeholder="e.g. 🎉 Big sale this weekend"
                     value={form.subject}
                     onChange={(e) => setField("subject", e.target.value)}
@@ -244,29 +244,29 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>From Name</label>
+                    <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>From Name</label>
                     <input
-                      className="w-full text-sm px-3 py-2 rounded-lg outline-none text-white"
-                      style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }}
+                      className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                      style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a", color: "var(--text-primary)" }}
                       value={form.fromName}
                       onChange={(e) => setField("fromName", e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>From Email</label>
+                    <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>From Email</label>
                     <input
-                      className="w-full text-sm px-3 py-2 rounded-lg outline-none text-white"
-                      style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }}
+                      className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                      style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a", color: "var(--text-primary)" }}
                       value={form.fromEmail}
                       onChange={(e) => setField("fromEmail", e.target.value)}
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>Send To List</label>
+                  <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>Send To List</label>
                   <select
-                    className="w-full text-sm px-3 py-2 rounded-lg outline-none text-white"
-                    style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }}
+                    className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                    style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a", color: "var(--text-primary)" }}
                     value={form.listId}
                     onChange={(e) => setField("listId", e.target.value)}
                   >
@@ -277,10 +277,10 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                 </div>
                 {templates.length > 0 && (
                   <div>
-                    <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>Template (optional)</label>
+                    <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>Template (optional)</label>
                     <select
                       className="w-full text-sm px-3 py-2 rounded-lg outline-none"
-                      style={{ background: "#1a1a24", border: "1px solid #2a2a3a", color: form.templateId ? "white" : "#6b7280" }}
+                      style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a", color: form.templateId ? "var(--text-primary)" : "var(--text-muted)" }}
                       value={form.templateId}
                       onChange={(e) => setField("templateId", e.target.value)}
                     >
@@ -292,13 +292,13 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                   </div>
                 )}
                 <div>
-                  <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>
+                  <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>
                     Schedule Send (optional — leave blank to save as draft)
                   </label>
                   <input
                     type="datetime-local"
-                    className="w-full text-sm px-3 py-2 rounded-lg outline-none text-white"
-                    style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }}
+                    className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                    style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a", color: "var(--text-primary)" }}
                     value={form.scheduledAt}
                     onChange={(e) => setField("scheduledAt", e.target.value)}
                   />
@@ -312,7 +312,7 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                   </div>
                 )}
                 <div className="flex gap-3 pt-2">
-                  <button onClick={handleClose} className="flex-1 text-sm py-2 rounded-lg" style={{ background: "#1a1a24", color: "#6b7280" }}>
+                  <button onClick={handleClose} className="flex-1 text-sm py-2 rounded-lg" style={{ background: "var(--bg-subtle)", color: "var(--text-muted)" }}>
                     Cancel
                   </button>
                   <button
@@ -334,10 +334,10 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                 {!aiResult && (
                   <>
                     <div>
-                      <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>Campaign Name (optional)</label>
+                      <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>Campaign Name (optional)</label>
                       <input
-                        className="w-full text-sm px-3 py-2 rounded-lg outline-none text-white"
-                        style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }}
+                        className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                        style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a", color: "var(--text-primary)" }}
                         placeholder="e.g. EOFY Sale June 2026"
                         value={aiCampaignName}
                         onChange={(e) => setAiCampaignName(e.target.value)}
@@ -345,10 +345,10 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                       />
                     </div>
                     <div>
-                      <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>Send To List</label>
+                      <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>Send To List</label>
                       <select
-                        className="w-full text-sm px-3 py-2 rounded-lg outline-none text-white"
-                        style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }}
+                        className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                        style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a", color: "var(--text-primary)" }}
                         value={aiListId}
                         onChange={(e) => setAiListId(e.target.value)}
                         disabled={aiStreaming}
@@ -359,13 +359,13 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>
+                      <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>
                         Email Brief
-                        <span className="ml-1 font-normal" style={{ color: "#4b5563" }}>— describe the campaign, offer, tone, any specific products</span>
+                        <span className="ml-1 font-normal" style={{ color: "var(--text-faint)" }}>— describe the campaign, offer, tone, any specific products</span>
                       </label>
                       <textarea
-                        className="w-full text-sm px-3 py-2 rounded-lg outline-none text-white resize-none"
-                        style={{ background: "#1a1a24", border: "1px solid #2a2a3a", minHeight: "100px" }}
+                        className="w-full text-sm px-3 py-2 rounded-lg outline-none resize-none"
+                        style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a", minHeight: "100px", color: "var(--text-primary)" }}
                         placeholder="e.g. EOFY sale — 20% off everything sitewide, going to our full list, send Friday 27 June. Upbeat tone, push urgency, sale ends Sunday midnight."
                         value={aiBrief}
                         onChange={(e) => setAiBrief(e.target.value)}
@@ -379,7 +379,7 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                 {aiStreaming && (
                   <div
                     className="rounded-lg p-4 text-xs font-mono overflow-y-auto"
-                    style={{ background: "#0d0d14", border: "1px solid #2a2a3a", maxHeight: "280px", color: "#a5b4fc", whiteSpace: "pre-wrap" }}
+                    style={{ background: "var(--bg-card-inner)", border: "1px solid #2a2a3a", maxHeight: "280px", color: "#a5b4fc", whiteSpace: "pre-wrap" }}
                   >
                     <div className="flex items-center gap-2 mb-2" style={{ color: "#6366f1" }}>
                       <span className="animate-pulse">●</span>
@@ -402,7 +402,7 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                     {/* Subject line picker */}
                     {aiResult.subjects.length > 0 && (
                       <div>
-                        <label className="text-xs font-medium mb-2 block" style={{ color: "#9ca3af" }}>Subject Line — pick one</label>
+                        <label className="text-xs font-medium mb-2 block" style={{ color: "var(--text-secondary)" }}>Subject Line — pick one</label>
                         <div className="space-y-2">
                           {aiResult.subjects.map((s, i) => (
                             <button
@@ -410,7 +410,7 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                               onClick={() => setSelectedSubject(i)}
                               className="w-full text-left text-sm px-3 py-2 rounded-lg transition-all"
                               style={{
-                                background: selectedSubject === i ? "#6366f120" : "#1a1a24",
+                                background: selectedSubject === i ? "#6366f120" : "var(--bg-subtle)",
                                 border: `1px solid ${selectedSubject === i ? "#6366f1" : "#2a2a3a"}`,
                                 color: selectedSubject === i ? "#a5b4fc" : "#e5e7eb",
                               }}
@@ -426,8 +426,8 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                     {/* Preview text */}
                     {aiResult.previewText && (
                       <div>
-                        <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>Preview Text</label>
-                        <p className="text-sm px-3 py-2 rounded-lg" style={{ background: "#1a1a24", color: "#e5e7eb" }}>
+                        <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>Preview Text</label>
+                        <p className="text-sm px-3 py-2 rounded-lg" style={{ background: "var(--bg-subtle)", color: "#e5e7eb" }}>
                           {aiResult.previewText}
                         </p>
                       </div>
@@ -436,8 +436,8 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                     {/* Send time */}
                     {aiResult.sendTime && (
                       <div>
-                        <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>Recommended Send Time</label>
-                        <p className="text-sm px-3 py-2 rounded-lg" style={{ background: "#1a1a24", color: "#e5e7eb" }}>
+                        <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>Recommended Send Time</label>
+                        <p className="text-sm px-3 py-2 rounded-lg" style={{ background: "var(--bg-subtle)", color: "#e5e7eb" }}>
                           {aiResult.sendTime}
                         </p>
                       </div>
@@ -447,11 +447,11 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                     {aiResult.html && (
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-xs font-medium" style={{ color: "#9ca3af" }}>Email HTML</label>
+                          <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Email HTML</label>
                           <button
                             onClick={() => setShowHtmlPreview((v) => !v)}
                             className="text-xs px-2 py-1 rounded"
-                            style={{ background: "#1a1a24", color: "#6366f1", border: "1px solid #2a2a3a" }}
+                            style={{ background: "var(--bg-subtle)", color: "#6366f1", border: "1px solid #2a2a3a" }}
                           >
                             {showHtmlPreview ? "Hide preview" : "Show preview"}
                           </button>
@@ -468,7 +468,7 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                         {!showHtmlPreview && (
                           <div
                             className="text-xs font-mono px-3 py-2 rounded-lg overflow-auto"
-                            style={{ background: "#0d0d14", border: "1px solid #2a2a3a", color: "#6b7280", maxHeight: "120px", whiteSpace: "pre" }}
+                            style={{ background: "var(--bg-card-inner)", border: "1px solid #2a2a3a", color: "var(--text-muted)", maxHeight: "120px", whiteSpace: "pre" }}
                           >
                             {aiResult.html.slice(0, 300)}…
                           </div>
@@ -481,7 +481,7 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                       <button
                         onClick={() => { setAiResult(null); setAiStreamText(""); }}
                         className="text-sm py-2 px-4 rounded-lg"
-                        style={{ background: "#1a1a24", color: "#9ca3af", border: "1px solid #2a2a3a" }}
+                        style={{ background: "var(--bg-subtle)", color: "var(--text-secondary)", border: "1px solid #2a2a3a" }}
                       >
                         Rebuild
                       </button>
@@ -499,7 +499,7 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                 {/* Generate button */}
                 {!aiResult && (
                   <div className="flex gap-3 pt-2">
-                    <button onClick={handleClose} className="text-sm py-2 px-4 rounded-lg" style={{ background: "#1a1a24", color: "#6b7280" }}>
+                    <button onClick={handleClose} className="text-sm py-2 px-4 rounded-lg" style={{ background: "var(--bg-subtle)", color: "var(--text-muted)" }}>
                       Cancel
                     </button>
                     <button

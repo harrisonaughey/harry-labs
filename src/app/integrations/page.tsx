@@ -21,7 +21,7 @@ export default async function IntegrationsPage() {
   const connected = connectedIds.length;
 
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "#0a0a0f" }}>
+    <div className="flex h-screen w-full overflow-hidden" style={{ background: "var(--bg-app)" }}>
       <Suspense>
         <Sidebar stores={stores} activePage="Integrations" />
       </Suspense>
@@ -30,23 +30,23 @@ export default async function IntegrationsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8 flex-shrink-0">
           <div>
-            <h1 className="text-2xl font-semibold text-white">Integration Process</h1>
-            <p className="text-sm mt-1" style={{ color: "#6b7280" }}>
+            <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>Integration Process</h1>
+            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
               Setup guides, credentials and connection status for all integrations
             </p>
           </div>
           {/* Progress */}
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-xs uppercase tracking-wider mb-1" style={{ color: "#6b7280" }}>Connected</p>
-              <p className="text-xl font-bold text-white">{connected}<span className="text-sm font-normal" style={{ color: "#4b5563" }}>/{total}</span></p>
+              <p className="text-xs uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>Connected</p>
+              <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>{connected}<span className="text-sm font-normal" style={{ color: "var(--text-faint)" }}>/{total}</span></p>
             </div>
             <div className="w-32">
-              <div className="h-2 rounded-full overflow-hidden" style={{ background: "#1e1e2e" }}>
+              <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
                 <div className="h-full rounded-full transition-all"
                   style={{ width: `${(connected / total) * 100}%`, background: "linear-gradient(90deg, #6366f1, #10b981)" }} />
               </div>
-              <p className="text-xs mt-1 text-right" style={{ color: "#4b5563" }}>
+              <p className="text-xs mt-1 text-right" style={{ color: "var(--text-faint)" }}>
                 {Math.round((connected / total) * 100)}% complete
               </p>
             </div>

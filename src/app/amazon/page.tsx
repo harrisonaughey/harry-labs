@@ -23,19 +23,19 @@ export default async function AmazonPage() {
     >
       {/* Connect card */}
       <div className="flex items-start justify-center mb-8">
-        <div className="w-full max-w-lg rounded-2xl p-8" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+        <div className="w-full max-w-lg rounded-2xl p-8" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
           <div className="flex items-center gap-4 mb-6">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl"
               style={{ background: "#FF990020", border: "1px solid #FF990040" }}>📫</div>
             <div>
-              <h2 className="text-base font-semibold text-white">Connect Amazon Seller Central</h2>
-              <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>
+              <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Connect Amazon Seller Central</h2>
+              <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
                 View listings, sales, FBA inventory, and advertising from one place.
               </p>
             </div>
           </div>
           <div className="space-y-2 mb-6">
-            <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "#4b5563" }}>
+            <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "var(--text-faint)" }}>
               Required Environment Variables
             </p>
             {[
@@ -46,13 +46,13 @@ export default async function AmazonPage() {
               { key: "AMAZON_CLIENT_SECRET",    hint: "SP-API LWA App Client Secret" },
             ].map((v) => (
               <div key={v.key} className="flex items-center justify-between px-4 py-3 rounded-lg"
-                style={{ background: "#0d0d14", border: "1px solid #1e1e2e" }}>
-                <span className="text-xs" style={{ color: "#6b7280" }}>{v.hint}</span>
+                style={{ background: "var(--bg-card-inner)", border: "1px solid var(--border)" }}>
+                <span className="text-xs" style={{ color: "var(--text-muted)" }}>{v.hint}</span>
                 <span className="text-xs font-mono font-medium" style={{ color: "#a5b4fc" }}>{v.key}</span>
               </div>
             ))}
           </div>
-          <p className="text-xs mb-5" style={{ color: "#4b5563" }}>
+          <p className="text-xs mb-5" style={{ color: "var(--text-faint)" }}>
             Add these keys to Vercel environment variables, then redeploy.
           </p>
           <div className="flex gap-3">
@@ -63,7 +63,7 @@ export default async function AmazonPage() {
             </a>
             <a href="https://developer-docs.amazon.com/sp-api/docs" target="_blank" rel="noopener noreferrer"
               className="flex-1 text-sm py-2.5 px-4 rounded-lg text-center hover:opacity-80 transition-opacity"
-              style={{ background: "#1a1a24", color: "#9ca3af", border: "1px solid #2a2a3a" }}>
+              style={{ background: "var(--bg-subtle)", color: "var(--text-secondary)", border: "1px solid #2a2a3a" }}>
               SP-API Docs →
             </a>
           </div>
@@ -71,19 +71,19 @@ export default async function AmazonPage() {
       </div>
 
       {/* Placeholder sections */}
-      <h2 className="text-sm font-semibold text-white mb-3">Coming Once Connected</h2>
+      <h2 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Coming Once Connected</h2>
       <div className="grid grid-cols-5 gap-4">
         {PLACEHOLDER_SECTIONS.map((s) => (
           <div key={s.label} className="rounded-xl p-5 relative overflow-hidden opacity-40"
-            style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
+            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
             <div className="absolute top-2 right-2">
               <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#6366f120", color: "#a5b4fc" }}>
                 Soon
               </span>
             </div>
             <span className="text-2xl mb-3 block">{s.icon}</span>
-            <p className="text-sm font-semibold text-white mb-1">{s.label}</p>
-            <p className="text-xs" style={{ color: "#4b5563" }}>{s.desc}</p>
+            <p className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>{s.label}</p>
+            <p className="text-xs" style={{ color: "var(--text-faint)" }}>{s.desc}</p>
           </div>
         ))}
       </div>

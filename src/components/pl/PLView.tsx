@@ -91,28 +91,28 @@ export default function PLView({ shopifyRevenue, shopifyOrders }: Props) {
           { label: "Total Expenses",value: fmt(totalExpenses),     color: "#ef4444" },
           { label: "Net Profit",   value: fmt(netProfit),          color: netProfit >= 0 ? "#10b981" : "#ef4444", sub: `${netMargin.toFixed(1)}% net margin` },
         ].map((k) => (
-          <div key={k.label} className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-            <p className="text-xs uppercase tracking-wider mb-3" style={{ color: "#6b7280" }}>{k.label}</p>
+          <div key={k.label} className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <p className="text-xs uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>{k.label}</p>
             <p className="text-2xl font-bold" style={{ color: k.color }}>{k.value}</p>
-            {k.sub && <p className="text-xs mt-1" style={{ color: "#4b5563" }}>{k.sub}</p>}
+            {k.sub && <p className="text-xs mt-1" style={{ color: "var(--text-faint)" }}>{k.sub}</p>}
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-2 gap-6">
         {/* P&L Statement */}
-        <div className="rounded-xl overflow-hidden" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-          <div className="px-5 py-4" style={{ borderBottom: "1px solid #1e1e2e" }}>
-            <h2 className="text-sm font-semibold text-white">P&L Statement</h2>
-            <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>Revenue from Shopify · expenses below</p>
+        <div className="rounded-xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+          <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
+            <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>P&L Statement</h2>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Revenue from Shopify · expenses below</p>
           </div>
           <div className="p-5 space-y-2">
             {PL_ROWS.map((row, i) => (
               <div key={i}>
-                {row.divider && <div className="my-2" style={{ borderTop: "1px solid #1e1e2e" }} />}
+                {row.divider && <div className="my-2" style={{ borderTop: "1px solid var(--border)" }} />}
                 <div className="flex items-center justify-between py-1.5"
                   style={{ paddingLeft: row.indent ? "16px" : "0" }}>
-                  <span className="text-sm" style={{ color: row.bold ? "white" : "#9ca3af", fontWeight: row.bold ? 600 : 400 }}>
+                  <span className="text-sm" style={{ color: row.bold ? "var(--text-primary)" : "var(--text-secondary)", fontWeight: row.bold ? 600 : 400 }}>
                     {row.label}
                   </span>
                   <span className="text-sm font-medium" style={{ color: row.color }}>
@@ -126,19 +126,19 @@ export default function PLView({ shopifyRevenue, shopifyOrders }: Props) {
 
         {/* Expense inputs */}
         <div className="space-y-4">
-          <div className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-            <h2 className="text-sm font-semibold text-white mb-4">Configure Expenses</h2>
+          <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <h2 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Configure Expenses</h2>
 
             {/* COGS */}
             <div className="mb-4">
-              <label className="text-xs font-medium mb-2 block" style={{ color: "#9ca3af" }}>
+              <label className="text-xs font-medium mb-2 block" style={{ color: "var(--text-secondary)" }}>
                 Cost of Goods (COGS)
               </label>
               <div className="flex gap-2 mb-2">
                 {(["pct", "fixed"] as const).map((m) => (
                   <button key={m} onClick={() => setCogsMode(m)}
                     className="text-xs px-3 py-1 rounded-md"
-                    style={{ background: cogsMode === m ? "#6366f1" : "#1a1a24", color: cogsMode === m ? "white" : "#6b7280" }}>
+                    style={{ background: cogsMode === m ? "#6366f1" : "var(--bg-subtle)", color: cogsMode === m ? "white" : "var(--text-muted)" }}>
                     {m === "pct" ? "% of Revenue" : "Fixed AUD"}
                   </button>
                 ))}
@@ -146,14 +146,14 @@ export default function PLView({ shopifyRevenue, shopifyOrders }: Props) {
               {cogsMode === "pct" ? (
                 <div className="flex items-center gap-2">
                   <input type="number" value={cogsPct} onChange={(e) => setCogsPct(e.target.value)}
-                    className="w-24 text-sm px-3 py-2 rounded-lg outline-none text-white"
-                    style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }} />
-                  <span className="text-sm text-white">% → {fmt(cogs)}</span>
+                    className="w-24 text-sm px-3 py-2 rounded-lg outline-none"
+                    style={{ background: "var(--bg-subtle)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
+                  <span className="text-sm" style={{ color: "var(--text-primary)" }}>% → {fmt(cogs)}</span>
                 </div>
               ) : (
                 <input type="number" value={cogsFixed} onChange={(e) => setCogsFixed(e.target.value)}
-                  className="w-full text-sm px-3 py-2 rounded-lg outline-none text-white"
-                  style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }}
+                  className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                  style={{ background: "var(--bg-subtle)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
                   placeholder="0.00" />
               )}
             </div>
@@ -165,12 +165,12 @@ export default function PLView({ shopifyRevenue, shopifyOrders }: Props) {
               { label: "Platform Fees",  value: platformFee, set: setPlatformFee, hint: "Shopify subscription + % fees" },
             ].map((field) => (
               <div key={field.label} className="mb-3">
-                <label className="text-xs font-medium mb-1 block" style={{ color: "#9ca3af" }}>{field.label}</label>
+                <label className="text-xs font-medium mb-1 block" style={{ color: "var(--text-secondary)" }}>{field.label}</label>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs" style={{ color: "#4b5563" }}>$</span>
+                  <span className="text-xs" style={{ color: "var(--text-faint)" }}>$</span>
                   <input type="number" value={field.value} onChange={(e) => field.set(e.target.value)}
-                    className="flex-1 text-sm px-3 py-2 rounded-lg outline-none text-white"
-                    style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }}
+                    className="flex-1 text-sm px-3 py-2 rounded-lg outline-none"
+                    style={{ background: "var(--bg-subtle)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
                     placeholder="0.00" />
                 </div>
                 <p className="text-xs mt-0.5" style={{ color: "#374151" }}>{field.hint}</p>
@@ -179,25 +179,25 @@ export default function PLView({ shopifyRevenue, shopifyOrders }: Props) {
           </div>
 
           {/* Extra expense rows */}
-          <div className="rounded-xl p-5" style={{ background: "#111118", border: "1px solid #1e1e2e" }}>
-            <h2 className="text-sm font-semibold text-white mb-3">Additional Expenses</h2>
+          <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <h2 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Additional Expenses</h2>
             <div className="space-y-2 mb-3">
               {extraRows.map((r) => (
                 <div key={r.id} className="flex items-center gap-2">
-                  <span className="flex-1 text-xs text-white">{r.label}</span>
+                  <span className="flex-1 text-xs" style={{ color: "var(--text-primary)" }}>{r.label}</span>
                   <span className="text-xs" style={{ color: "#ef4444" }}>${parseFloat(r.amount).toFixed(2)}</span>
-                  <button onClick={() => removeRow(r.id)} className="text-xs px-2" style={{ color: "#6b7280" }}>✕</button>
+                  <button onClick={() => removeRow(r.id)} className="text-xs px-2" style={{ color: "var(--text-muted)" }}>✕</button>
                 </div>
               ))}
             </div>
             <div className="flex gap-2">
               <input value={newLabel} onChange={(e) => setNewLabel(e.target.value)}
-                className="flex-1 text-sm px-3 py-2 rounded-lg outline-none text-white"
-                style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }}
+                className="flex-1 text-sm px-3 py-2 rounded-lg outline-none"
+                style={{ background: "var(--bg-subtle)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
                 placeholder="Expense label" />
               <input type="number" value={newAmount} onChange={(e) => setNewAmount(e.target.value)}
-                className="w-24 text-sm px-3 py-2 rounded-lg outline-none text-white"
-                style={{ background: "#1a1a24", border: "1px solid #2a2a3a" }}
+                className="w-24 text-sm px-3 py-2 rounded-lg outline-none"
+                style={{ background: "var(--bg-subtle)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
                 placeholder="Amount" />
               <button onClick={addRow}
                 className="text-sm px-3 py-2 rounded-lg hover:opacity-80 transition-opacity"

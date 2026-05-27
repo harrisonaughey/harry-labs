@@ -47,7 +47,7 @@ export default function StoreSwitcher({ stores, currentStoreId }: { stores: Stor
       <a
         href="#"
         className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs w-full mt-1"
-        style={{ color: "#4b5563" }}
+        style={{ color: "var(--text-faint)" }}
       >
         <span>+</span> Add store
       </a>

@@ -58,7 +58,7 @@ export default async function EmailPage() {
   ]);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "#0a0a0f" }}>
+    <div className="flex h-screen w-full overflow-hidden" style={{ background: "var(--bg-app)" }}>
       <Suspense>
         <Sidebar stores={stores} activePage="Email" />
       </Suspense>
@@ -67,8 +67,8 @@ export default async function EmailPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-semibold text-white">Email</h1>
-            <p className="text-sm mt-1" style={{ color: "#6b7280" }}>
+            <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>Email</h1>
+            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
               Klaviyo campaigns · flows · metrics · scheduling
             </p>
           </div>

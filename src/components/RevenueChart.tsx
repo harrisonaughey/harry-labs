@@ -13,14 +13,14 @@ export default function RevenueChart({ data }: { data: DataPoint[] }) {
   return (
     <div
       className="rounded-xl p-5 h-full"
-      style={{ background: "#111118", border: "1px solid #1e1e2e" }}
+      style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
     >
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-sm font-semibold text-white">Revenue</h2>
-          <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>Monthly overview</p>
+          <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Revenue</h2>
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Monthly overview</p>
         </div>
-        <div className="flex gap-4 text-xs" style={{ color: "#6b7280" }}>
+        <div className="flex gap-4 text-xs" style={{ color: "var(--text-muted)" }}>
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "#6366f1" }} />
             Revenue
@@ -30,7 +30,7 @@ export default function RevenueChart({ data }: { data: DataPoint[] }) {
 
       {isEmpty ? (
         <div className="flex flex-col items-center justify-center h-40 gap-2">
-          <p className="text-sm" style={{ color: "#4b5563" }}>No revenue data yet</p>
+          <p className="text-sm" style={{ color: "var(--text-faint)" }}>No revenue data yet</p>
           <p className="text-xs" style={{ color: "#374151" }}>Connect Shopify or Stripe to populate</p>
         </div>
       ) : (
@@ -51,7 +51,7 @@ export default function RevenueChart({ data }: { data: DataPoint[] }) {
                   title={`$${d.revenue.toLocaleString()}`}
                 />
               </div>
-              <span className="text-xs" style={{ color: "#4b5563" }}>{d.month}</span>
+              <span className="text-xs" style={{ color: "var(--text-faint)" }}>{d.month}</span>
             </div>
           ))}
         </div>
@@ -59,10 +59,10 @@ export default function RevenueChart({ data }: { data: DataPoint[] }) {
 
       <div
         className="flex justify-between mt-5 pt-4 text-xs"
-        style={{ borderTop: "1px solid #1e1e2e", color: "#6b7280" }}
+        style={{ borderTop: "1px solid var(--border)", color: "var(--text-muted)" }}
       >
-        <span>Peak: <span className="text-white">${peakRevenue.toLocaleString()}</span></span>
-        <span>Avg: <span className="text-white">${Math.round(avgRevenue).toLocaleString()}</span></span>
+        <span>Peak: <span style={{ color: "var(--text-primary)" }}>${peakRevenue.toLocaleString()}</span></span>
+        <span>Avg: <span style={{ color: "var(--text-primary)" }}>${Math.round(avgRevenue).toLocaleString()}</span></span>
         <span>Total: <span style={{ color: "#10b981" }}>${totalRevenue.toLocaleString()}</span></span>
       </div>
     </div>
