@@ -2,6 +2,7 @@
 import { useState } from "react";
 import MetaAdsView from "@/components/traffic/MetaAdsView";
 import ConnectCard from "@/components/traffic/ConnectCard";
+import ContentAuditPanel from "@/components/content/ContentAuditPanel";
 
 type Props = { metaConnected: boolean };
 
@@ -11,6 +12,7 @@ const TABS = [
   { id: "tiktok",  label: "TikTok Ads",    icon: "🎵" },
   { id: "youtube", label: "YouTube",       icon: "▶️" },
   { id: "organic", label: "Organic Social",icon: "🌱" },
+  { id: "audit",   label: "Audit",         icon: "🎯" },
 ];
 
 type OrganicPost = { platform: string; date: string; reach: string; engagement: string; link: string };
@@ -170,6 +172,7 @@ export default function ContentDashboard({ metaConnected }: Props) {
       {tab === "tiktok"  && <ConnectCard platform="tiktok" />}
       {tab === "youtube" && <YouTubeView />}
       {tab === "organic" && <OrganicView />}
+      {tab === "audit"   && <ContentAuditPanel />}
     </>
   );
 }
