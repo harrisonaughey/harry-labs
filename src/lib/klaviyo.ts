@@ -212,7 +212,7 @@ export async function createCampaign(params: {
         name: params.name,
         audiences: { included: [params.listId] },
         send_options: { use_smart_sending: true },
-        tracking_options: { add_utm: true },
+        tracking_options: { add_tracking_params: true },
       },
     },
   });
