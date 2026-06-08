@@ -204,43 +204,45 @@ export async function createCampaign(params: {
   templateId?: string;
   scheduledAt?: string;
 }) {
-  // 1. Create campaign
+  // Klaviyo API (2024-10-15) requires campaign-messages to be bundled
+  // inside the campaign creation payload — separate message POST no longer valid.
+  const messageAttributes: Record<string, unknown> = {
+    channel: "email",
+    label: params.name,
+    content: {
+      subject: params.subject,
+      reply_to_email: params.fromEmail,
+      from_email: params.fromEmail,
+      from_label: params.fromName,
+    },
+  };
+  if (params.templateId) {
+    messageAttributes.template_id = params.templateId;
+  }
+
   const campaign = await kPost("/campaigns/", {
     data: {
       type: "campaign",
       attributes: {
         name: params.name,
-        audiences: { included: [params.listId] },
+        audiences: { included: [params.listId], excluded: [] },
         send_options: { use_smart_sending: true },
         tracking_options: { add_tracking_params: true },
+        "campaign-messages": {
+          data: [
+            {
+              type: "campaign-message",
+              attributes: messageAttributes,
+            },
+          ],
+        },
       },
     },
   });
 
   const campaignId = campaign.data.id;
 
-  // 2. Create message
-  await kPost("/campaign-messages/", {
-    data: {
-      type: "campaign-message",
-      attributes: {
-        channel: "email",
-        label: params.name,
-        content: {
-          subject: params.subject,
-          reply_to_email: params.fromEmail,
-          from_email: params.fromEmail,
-          from_label: params.fromName,
-        },
-        ...(params.templateId && { template_id: params.templateId }),
-      },
-      relationships: {
-        campaign: { data: { type: "campaign", id: campaignId } },
-      },
-    },
-  });
-
-  // 3. Schedule if requested
+  // Schedule if requested
   if (params.scheduledAt) {
     await kPost(`/campaign-send-jobs/`, {
       data: {
