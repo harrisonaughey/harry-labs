@@ -32,6 +32,20 @@ async function kPost(path: string, body: object) {
   return res.json();
 }
 
+async function kPatch(path: string, body: object) {
+  const res = await fetch(`${KLAVIYO_BASE}${path}`, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Klaviyo PATCH ${res.status}: ${err}`);
+  }
+  if (res.status === 204) return {};
+  return res.json();
+}
+
 // ─── Campaigns ────────────────────────────────────────────────────────────────
 export async function getCampaigns() {
   const data = await kGet(
@@ -194,6 +208,26 @@ export async function getFlowMetricsMap(): Promise<Record<string, any>> {
   }
 }
 
+// ─── Create template ─────────────────────────────────────────────────────────
+export async function createTemplate(params: {
+  name: string;
+  html: string;
+  text?: string;
+}): Promise<string> {
+  const resp = await kPost("/templates/", {
+    data: {
+      type: "template",
+      attributes: {
+        name: params.name,
+        editor_type: "CODE",
+        html: params.html,
+        text: params.text ?? "",
+      },
+    },
+  });
+  return resp.data.id as string;
+}
+
 // ─── Create campaign ──────────────────────────────────────────────────────────
 export async function createCampaign(params: {
   name: string;
@@ -201,23 +235,39 @@ export async function createCampaign(params: {
   fromEmail: string;
   fromName: string;
   listId: string;
-  templateId?: string;
+  html?: string;          // If provided, creates a Klaviyo template and links it to the message
+  previewText?: string;
   scheduledAt?: string;
-}) {
-  // Klaviyo API (2024-10-15) requires campaign-messages to be bundled
-  // inside the campaign creation payload — separate message POST no longer valid.
-  const messageAttributes: Record<string, unknown> = {
-    channel: "email",
-    label: params.name,
-    content: {
-      subject: params.subject,
-      reply_to_email: params.fromEmail,
-      from_email: params.fromEmail,
-      from_label: params.fromName,
-    },
+}): Promise<{ campaignId: string; templateId?: string }> {
+  // 1. Create standalone Klaviyo template from HTML (if provided)
+  let templateId: string | undefined;
+  if (params.html) {
+    templateId = await createTemplate({
+      name: params.name,
+      html: params.html,
+      text: `${params.subject}\n\nUnsubscribe: {{ unsubscribe_url }}`,
+    });
+  }
+
+  const content: Record<string, unknown> = {
+    subject:        params.subject,
+    reply_to_email: params.fromEmail,
+    from_email:     params.fromEmail,
+    from_label:     params.fromName,
   };
-  if (params.templateId) {
-    messageAttributes.template_id = params.templateId;
+  if (params.previewText) content.preview_text = params.previewText;
+
+  // 2. Create the campaign shell with an inline campaign-message
+  //    Include the template relationship directly so Klaviyo links it on creation.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const inlineMessage: Record<string, any> = {
+    type: "campaign-message",
+    attributes: { channel: "email", label: params.name, content },
+  };
+  if (templateId) {
+    inlineMessage.relationships = {
+      template: { data: { type: "template", id: templateId } },
+    };
   }
 
   const campaign = await kPost("/campaigns/", {
@@ -228,21 +278,54 @@ export async function createCampaign(params: {
         audiences: { included: [params.listId], excluded: [] },
         send_options: { use_smart_sending: true },
         tracking_options: { add_tracking_params: true },
-        "campaign-messages": {
-          data: [
-            {
-              type: "campaign-message",
-              attributes: messageAttributes,
-            },
-          ],
-        },
+        "campaign-messages": { data: [inlineMessage] },
       },
     },
   });
 
-  const campaignId = campaign.data.id;
+  const campaignId = campaign.data.id as string;
 
-  // Schedule if requested
+  // 3. Link template to the campaign-message.
+  //    The POST /campaigns/ response does NOT include campaign-message IDs in its
+  //    relationships.data array (only links). We do a separate GET to get the ID
+  //    reliably, then PATCH with two fallback strategies.
+  if (templateId) {
+    try {
+      const msgResp  = await kGet(`/campaigns/${campaignId}/campaign-messages/`);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const messageId = (msgResp.data as any[])?.[0]?.id as string | undefined;
+
+      if (messageId) {
+        // Strategy 1 — PATCH the message body with relationships (JSON:API style)
+        try {
+          await kPatch(`/campaign-messages/${messageId}/`, {
+            data: {
+              type: "campaign-message",
+              id: messageId,
+              relationships: {
+                template: { data: { type: "template", id: templateId } },
+              },
+            },
+          });
+          console.log(`[klaviyo] ✓ Template ${templateId} linked to message ${messageId}`);
+        } catch (e1: unknown) {
+          // Strategy 2 — PATCH the relationships sub-resource directly
+          console.warn("[klaviyo] Strategy-1 PATCH failed, trying sub-resource:", e1);
+          await kPatch(`/campaign-messages/${messageId}/relationships/template/`, {
+            data: { type: "template", id: templateId },
+          });
+          console.log(`[klaviyo] ✓ Template linked via relationships sub-resource`);
+        }
+      } else {
+        console.warn(`[klaviyo] Campaign ${campaignId} returned no campaign-messages`);
+      }
+    } catch (e: unknown) {
+      // Non-fatal — both Klaviyo objects exist; log and continue
+      console.error(`[klaviyo] Template link failed (campaign still created):`, e);
+    }
+  }
+
+  // 4. Schedule if requested
   if (params.scheduledAt) {
     await kPost(`/campaign-send-jobs/`, {
       data: {
@@ -255,5 +338,5 @@ export async function createCampaign(params: {
     });
   }
 
-  return { campaignId };
+  return { campaignId, templateId };
 }
