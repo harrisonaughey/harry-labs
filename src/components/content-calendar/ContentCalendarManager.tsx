@@ -89,13 +89,14 @@ const BUILD_STEPS = [
 // ─── Entry modal ──────────────────────────────────────────────────────────────
 
 interface BuildResult {
-  entryId: string;
+  entryId:    string;
   campaignId: string;
   templateId?: string;
-  emailType: string;
-  subject: string;
+  emailType:  string;
+  subject:    string;
   previewText: string;
   imagesUsed?: string;
+  designRule?: string | null;
 }
 
 interface ModalProps {
@@ -281,6 +282,7 @@ function EntryModal({ entry, lists, onClose, onSave, onBuildComplete }: ModalPro
             <div className="rounded-xl overflow-hidden"
               style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a" }}>
               {[
+                ...(buildResult.designRule ? [["Design rule", `🎨 ${buildResult.designRule}`]] : []),
                 ["Template type",  selectedTplLabel.split("  ")[0]],
                 ["Subject line",   buildResult.subject],
                 ["Preview text",   buildResult.previewText || "—"],

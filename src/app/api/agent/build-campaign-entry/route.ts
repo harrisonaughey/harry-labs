@@ -23,6 +23,7 @@ import {
   matchImagesToSlots,
   buildKlaviyoImageCatalogue,
 } from "@/lib/klaviyo-images";
+import { matchDesignRule, buildDesignRulesPrompt, type DesignRule } from "@/lib/design-rules";
 
 const STORE_ID = "50f89d8a-ae07-4999-9ec7-4304a2f6c51b";
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -130,19 +131,34 @@ export async function POST(req: NextRequest) {
     id = newEntry.id as string;
   }
 
-  // ── 2. Select email type ──────────────────────────────────────────────────
+  // ── 2. Fetch design rules + find match ───────────────────────────────────
+  let matchedRule: DesignRule | null = null;
+  try {
+    const { data: rulesData } = await supabase
+      .from("campaign_design_rules")
+      .select("*")
+      .eq("store_id", STORE_ID)
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true });
+    matchedRule = matchDesignRule(name.trim(), briefText, (rulesData ?? []) as DesignRule[]);
+  } catch (e) {
+    console.warn("[build-campaign-entry] Could not fetch design rules:", e);
+  }
+
+  // ── 3. Select email type (rule template_type > manual selection > auto-detect) ──
   type EmailType = keyof typeof TEMPLATE_META;
   const VALID_TYPES = new Set(Object.keys(TEMPLATE_META));
+  const resolvedTemplateType = matchedRule?.template_type || templateType;
   const emailType: EmailType =
-    templateType && VALID_TYPES.has(templateType)
-      ? (templateType as EmailType)
+    resolvedTemplateType && VALID_TYPES.has(resolvedTemplateType)
+      ? (resolvedTemplateType as EmailType)
       : detectEmailType(briefText);
 
   const tmplMeta = TEMPLATE_META[emailType];
   const tmplHtml = getTemplate(emailType);
 
   try {
-    // ── 3. Fetch + match images ──────────────────────────────────────────────
+    // ── 4. Fetch + match images ──────────────────────────────────────────────
     const klaviyoImages = await fetchKlaviyoImages();
     let imageCat: string;
     let imagesMeta: string = "";
@@ -156,18 +172,23 @@ export async function POST(req: NextRequest) {
       imagesMeta        = driveImages.map((i) => i.filename).join(", ");
     }
 
-    // ── 4. Build Claude user message ─────────────────────────────────────────
+    // ── 5. Build Claude user message ─────────────────────────────────────────
+    const colorPrimary = matchedRule?.color_primary ?? "#6366f1";
+    const colorAccent  = matchedRule?.color_accent  ?? "#f59e0b";
+
     const userMessage = [
       `Campaign name: ${name.trim()}`,
-      listId   ? `Target Klaviyo list ID: ${listId}` : null,
-      send_at  ? `Send date: ${new Date(send_at).toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}` : null,
+      listId         ? `Target Klaviyo list ID: ${listId}` : null,
+      send_at        ? `Send date: ${new Date(send_at).toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}` : null,
       destinationUrl ? `CTA destination URL: ${destinationUrl}` : null,
-      `Brand colours — Primary: #6366f1 | Secondary: #818cf8 | Accent: #f59e0b`,
+      `Brand colours — Primary: ${colorPrimary} | Secondary: #818cf8 | Accent: ${colorAccent}`,
       ``,
       `Brief: ${briefText}`,
       ``,
-      `## Auto-selected email type`,
-      `Based on this brief, the system has selected: **${tmplMeta.name}**`,
+      // Inject design rules BEFORE template selection guidance
+      ...(matchedRule ? [buildDesignRulesPrompt(matchedRule), ``] : []),
+      `## Email type selected`,
+      `Based on ${matchedRule ? `the matched design rule (${matchedRule.name})` : "this brief"}, the system has selected: **${tmplMeta.name}**`,
       `Best for: ${tmplMeta.bestFor}`,
       `Performance benchmark: ${tmplMeta.performanceBenchmark}`,
       ``,
@@ -182,7 +203,7 @@ export async function POST(req: NextRequest) {
       .filter((l): l is string => l !== null)
       .join("\n");
 
-    // ── 5. Call Claude ────────────────────────────────────────────────────────
+    // ── 6. Call Claude ────────────────────────────────────────────────────────
     const msg = await anthropic.messages.create({
       model:      "claude-opus-4-7",
       max_tokens: 8192,
@@ -201,7 +222,7 @@ export async function POST(req: NextRequest) {
 
     if (!html) throw new Error("Claude returned no HTML block — check the brief and try again");
 
-    // ── 6. Create Klaviyo template + campaign (template is linked in createCampaign) ──
+    // ── 7. Create Klaviyo template + campaign (template is linked in createCampaign) ──
     const finalListId = listId || process.env.KLAVIYO_DEFAULT_LIST_ID || "";
     const { campaignId, templateId } = await createCampaign({
       name:        name.trim(),
@@ -214,7 +235,7 @@ export async function POST(req: NextRequest) {
       scheduledAt: send_at ?? undefined,
     });
 
-    // ── 7. Write results to DB ────────────────────────────────────────────────
+    // ── 8. Write results to DB ────────────────────────────────────────────────
     await supabase.from("content_calendar").update({
       klaviyo_campaign_id: campaignId,
       klaviyo_template_id: templateId ?? null,
@@ -222,7 +243,7 @@ export async function POST(req: NextRequest) {
       updated_at:          new Date().toISOString(),
     }).eq("id", id!);
 
-    // ── 8. Log to agent_actions ───────────────────────────────────────────────
+    // ── 9. Log to agent_actions ───────────────────────────────────────────────
     await supabase.from("agent_actions").insert({
       store_id:            STORE_ID,
       agent_name:          "campaign-designer",
@@ -243,6 +264,7 @@ export async function POST(req: NextRequest) {
       subject:     subject || name.trim(),
       previewText,
       imagesUsed:  imagesMeta,
+      designRule:  matchedRule?.name ?? null,
     });
 
   } catch (err: unknown) {
