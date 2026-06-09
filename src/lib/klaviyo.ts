@@ -257,18 +257,14 @@ export async function createCampaign(params: {
   };
   if (params.previewText) content.preview_text = params.previewText;
 
-  // 2. Create the campaign shell with an inline campaign-message
-  //    Include the template relationship directly so Klaviyo links it on creation.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const inlineMessage: Record<string, any> = {
+  // 2. Create the campaign shell with an inline campaign-message.
+  //    NOTE: Klaviyo rejects 'template' as an inline relationship on creation
+  //    ("not an allowed relation on campaign-messages resource"). Template linking
+  //    is done in a separate PATCH after creation (step 3 below).
+  const inlineMessage = {
     type: "campaign-message",
     attributes: { channel: "email", label: params.name, content },
   };
-  if (templateId) {
-    inlineMessage.relationships = {
-      template: { data: { type: "template", id: templateId } },
-    };
-  }
 
   const campaign = await kPost("/campaigns/", {
     data: {
