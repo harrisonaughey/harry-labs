@@ -1,0 +1,21 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "brand": "thinkle.com.au",
+    "created": "2026-05-29",
+    "description": "Audit history for the content-audit-agent learning loop. Each entry is one post-live audit. The agent reads this file at the start of every audit to surface patterns specific to this brand.",
+    "fields": {
+      "date": "YYYY-MM-DD — date of post-live audit",
+      "video": "filename or Drive file name",
+      "hook_type": "one of: emotional_tension | curiosity_gap | bold_claim | identity_statement | visual_interrupt | social_proof | urgency_scarcity",
+      "duration_s": "video duration in seconds",
+      "content_style": "one of: ugc | founder | product_demo | problem_solution | listicle | testimonial | trending_audio | other",
+      "pre_live_score": "Stage 1 score if a pre-live audit was run, otherwise null",
+      "platforms": "object with per-platform metrics — only include platforms where data was available",
+      "best_platform": "platform with the strongest performance signal",
+      "key_learning": "1-2 sentence insight specific to this brand — what would future-you want to know?",
+      "add_to_history": "true if this audit produced a meaningful learning signal"
+    }
+  },
+  "audits": []
+}
