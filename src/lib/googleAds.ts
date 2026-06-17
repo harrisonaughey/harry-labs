@@ -1,4 +1,4 @@
-const GOOGLE_ADS_BASE = "https://googleads.googleapis.com/v17";
+const GOOGLE_ADS_BASE = "https://googleads.googleapis.com/v24";
 
 export function isGoogleConnected() {
   return !!(
