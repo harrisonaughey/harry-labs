@@ -109,7 +109,7 @@ export async function getMetaCampaigns(datePreset = "last_30d") {
 export async function getMetaDailySpend(days = 30) {
   const data = await metaGet(`/${accountId()}/insights`, {
     fields: "spend,impressions,clicks,actions",
-    date_preset: `last_${days}_d`,
+    date_preset: `last_${days}d`,
     time_increment: "1",
     level: "account",
   });
