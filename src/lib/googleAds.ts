@@ -25,16 +25,20 @@ async function getAccessToken(): Promise<string> {
 }
 
 async function gaqlQuery(query: string) {
-  const accessToken = await getAccessToken();
-  const customerId  = (process.env.GOOGLE_ADS_CUSTOMER_ID ?? "").replace(/-/g, "");
+  const accessToken   = await getAccessToken();
+  const customerId    = (process.env.GOOGLE_ADS_CUSTOMER_ID       ?? "").replace(/-/g, "");
+  const loginCustId   = (process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID ?? "").replace(/-/g, "");
+
+  const headers: Record<string, string> = {
+    Authorization:     `Bearer ${accessToken}`,
+    "developer-token": process.env.GOOGLE_ADS_DEVELOPER_TOKEN ?? "",
+    "Content-Type":    "application/json",
+  };
+  if (loginCustId) headers["login-customer-id"] = loginCustId;
 
   const res = await fetch(`${GOOGLE_ADS_BASE}/customers/${customerId}/googleAds:search`, {
     method: "POST",
-    headers: {
-      Authorization:             `Bearer ${accessToken}`,
-      "developer-token":         process.env.GOOGLE_ADS_DEVELOPER_TOKEN ?? "",
-      "Content-Type":            "application/json",
-    },
+    headers,
     body: JSON.stringify({ query }),
   });
   const data = await res.json();
