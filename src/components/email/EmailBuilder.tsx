@@ -12,6 +12,14 @@ type AiResult = {
   html: string;
 };
 
+type ImageMeta = {
+  slot:   string;
+  name:   string;
+  url:    string;
+  format: string;
+  source: "klaviyo" | "drive";
+};
+
 function parseAiResult(raw: string): AiResult {
   const section = (header: string) => {
     const re = new RegExp(`## ${header}\\s*([\\s\\S]*?)(?=\\n## |$)`, "i");
@@ -62,10 +70,19 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
   const [aiStreaming, setAiStreaming] = useState(false);
   const [aiStreamText, setAiStreamText] = useState("");
   const [aiResult, setAiResult] = useState<AiResult | null>(null);
+  const [aiImages, setAiImages] = useState<ImageMeta[]>([]);
+  const [aiImageSource, setAiImageSource] = useState<"klaviyo" | "drive" | null>(null);
+  const [showImages, setShowImages] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(0);
   const [showHtmlPreview, setShowHtmlPreview] = useState(false);
   const [aiError, setAiError] = useState("");
   const abortRef = useRef<AbortController | null>(null);
+
+  // AI → campaign creation state
+  const [aiCreateScheduleAt, setAiCreateScheduleAt] = useState("");
+  const [aiCreateState, setAiCreateState] = useState<"idle" | "creating" | "done">("idle");
+  const [aiCreateResult, setAiCreateResult] = useState<{ campaignId: string; templateId?: string } | null>(null);
+  const [aiCreateError, setAiCreateError] = useState("");
 
   function setField(key: string, val: string) {
     setForm((f) => ({ ...f, [key]: val }));
@@ -135,7 +152,12 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
           try {
             const parsed = JSON.parse(line.slice(6));
             if (parsed.error) { setAiError(parsed.error); break; }
-            if (parsed.done) { setAiResult(parseAiResult(accumulated)); break; }
+            if (parsed.done) {
+              setAiResult(parseAiResult(accumulated));
+              if (parsed.images?.length)  { setAiImages(parsed.images); setShowImages(true); }
+              if (parsed.imageSource)     setAiImageSource(parsed.imageSource);
+              break;
+            }
             if (parsed.text) {
               accumulated += parsed.text;
               setAiStreamText(accumulated);
@@ -163,13 +185,53 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
     setTab("manual");
   }
 
+  async function handleAiCreate(scheduledAt?: string) {
+    if (!aiResult) return;
+    setAiCreateState("creating");
+    setAiCreateError("");
+    try {
+      const res = await fetch("/api/klaviyo/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: aiCampaignName || `Email Campaign — ${new Date().toLocaleDateString("en-AU")}`,
+          subject: aiResult.subjects[selectedSubject] ?? aiResult.subjects[0] ?? "",
+          fromName: "Thinkle",
+          fromEmail: "hello@thinkle.com.au",
+          listId: aiListId,
+          html: aiResult.html,
+          previewText: aiResult.previewText,
+          scheduledAt: scheduledAt || null,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAiCreateResult({ campaignId: data.campaignId, templateId: data.templateId });
+        setAiCreateState("done");
+      } else {
+        setAiCreateError(data.error ?? "Campaign creation failed");
+        setAiCreateState("idle");
+      }
+    } catch (err) {
+      setAiCreateError((err as Error).message ?? "Network error");
+      setAiCreateState("idle");
+    }
+  }
+
   function handleClose() {
     abortRef.current?.abort();
     setOpen(false);
     setTab("manual");
     setAiStreamText("");
     setAiResult(null);
+    setAiImages([]);
+    setAiImageSource(null);
+    setShowImages(false);
     setAiError("");
+    setAiCreateState("idle");
+    setAiCreateResult(null);
+    setAiCreateError("");
+    setAiCreateScheduleAt("");
   }
 
   const listName = lists.find((l) => l.id === aiListId)?.attributes.name ?? "";
@@ -443,6 +505,78 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                       </div>
                     )}
 
+                    {/* Images Used — from Klaviyo or Drive */}
+                    {aiImages.length > 0 && (
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <label className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                              Images Used
+                            </label>
+                            <span className="text-xs px-1.5 py-0.5 rounded-full"
+                              style={{
+                                background: aiImageSource === "klaviyo" ? "#6366f120" : "#f59e0b20",
+                                color:      aiImageSource === "klaviyo" ? "#a5b4fc"   : "#fbbf24",
+                              }}>
+                              {aiImageSource === "klaviyo" ? "✓ Klaviyo library" : "↩ Drive fallback"}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => setShowImages((v) => !v)}
+                            className="text-xs px-2 py-1 rounded"
+                            style={{ background: "var(--bg-subtle)", color: "#6366f1", border: "1px solid #2a2a3a" }}>
+                            {showImages ? "Hide" : "Show"}
+                          </button>
+                        </div>
+
+                        {showImages && (
+                          <div className="grid gap-2"
+                            style={{ gridTemplateColumns: `repeat(${Math.min(aiImages.length, 3)}, 1fr)` }}>
+                            {aiImages.map((img) => (
+                              <a
+                                key={img.slot}
+                                href={img.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group block rounded-lg overflow-hidden relative"
+                                style={{ border: "1px solid #2a2a3a" }}>
+                                {/* Thumbnail */}
+                                <div className="w-full" style={{ background: "#111", aspectRatio: "16/9" }}>
+                                  <img
+                                    src={img.url}
+                                    alt={img.name}
+                                    className="w-full h-full object-cover"
+                                    style={{ opacity: 0.9 }}
+                                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                  />
+                                </div>
+                                {/* Overlay on hover */}
+                                <div className="absolute inset-0 flex flex-col justify-end p-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  style={{ background: "linear-gradient(transparent, rgba(0,0,0,0.8))" }}>
+                                  <p className="text-xs font-medium text-white truncate">{img.name}</p>
+                                  <p className="text-xs" style={{ color: "#a5b4fc" }}>
+                                    {"{{"}{img.slot}{"}}"}
+                                  </p>
+                                </div>
+                                {/* Slot badge */}
+                                <span className="absolute top-1.5 left-1.5 text-xs px-1.5 py-0.5 rounded font-mono"
+                                  style={{ background: "#6366f1dd", color: "white", fontSize: "10px" }}>
+                                  {img.slot}
+                                </span>
+                              </a>
+                            ))}
+                          </div>
+                        )}
+
+                        {showImages && aiImageSource === "drive" && (
+                          <p className="text-xs mt-1.5" style={{ color: "var(--text-faint)" }}>
+                            ℹ️ No images found in Klaviyo library — used Google Drive fallback.
+                            Upload images to <a href="https://www.klaviyo.com/content/images" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "#a5b4fc" }}>Klaviyo Images</a> for better matching.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {/* HTML preview toggle */}
                     {aiResult.html && (
                       <div>
@@ -476,23 +610,107 @@ export default function EmailBuilder({ lists, templates }: { lists: List[]; temp
                       </div>
                     )}
 
-                    {/* Action buttons */}
-                    <div className="flex gap-3 pt-2">
-                      <button
-                        onClick={() => { setAiResult(null); setAiStreamText(""); }}
-                        className="text-sm py-2 px-4 rounded-lg"
-                        style={{ background: "var(--bg-subtle)", color: "var(--text-secondary)", border: "1px solid #2a2a3a" }}
-                      >
-                        Rebuild
-                      </button>
-                      <button
-                        onClick={handleUseEmail}
-                        className="flex-1 text-sm py-2 rounded-lg font-medium"
-                        style={{ background: "#6366f1", color: "white" }}
-                      >
-                        Use this email →
-                      </button>
-                    </div>
+                    {/* ── Campaign launch section ── */}
+                    {aiCreateState === "done" && aiCreateResult ? (
+                      /* Success state */
+                      <div className="rounded-xl p-4 space-y-3" style={{ background: "#10b98110", border: "1px solid #10b981" }}>
+                        <div className="flex items-center gap-2">
+                          <span style={{ color: "#10b981", fontSize: "18px" }}>✅</span>
+                          <span className="text-sm font-semibold" style={{ color: "#10b981" }}>
+                            Campaign draft created!
+                          </span>
+                        </div>
+                        {aiCreateResult.templateId && (
+                          <div className="text-xs space-y-1" style={{ color: "var(--text-secondary)" }}>
+                            <div className="flex items-center gap-2">
+                              <span style={{ color: "#10b981" }}>✓</span>
+                              <span>Email template saved in Klaviyo — <span className="font-mono" style={{ color: "#a5b4fc" }}>ID: {aiCreateResult.templateId}</span></span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span style={{ color: "#10b981" }}>✓</span>
+                              <span>Campaign draft created — <span className="font-mono" style={{ color: "#a5b4fc" }}>ID: {aiCreateResult.campaignId}</span></span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* One-step Klaviyo instruction */}
+                        <div className="rounded-lg p-3 text-xs" style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a" }}>
+                          <div className="flex items-start gap-2">
+                            <span style={{ color: "#f59e0b", fontSize: "14px" }}>⚡</span>
+                            <div style={{ color: "var(--text-secondary)" }}>
+                              <span className="font-medium" style={{ color: "var(--text-primary)" }}>One step remaining in Klaviyo:</span>
+                              {" "}Open your campaign → click <em>Edit Content</em> → select <em>Use existing template</em> → choose &quot;<strong>{aiCampaignName || "your template"}</strong>&quot; → Save.
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-1">
+                          <a
+                            href="https://www.klaviyo.com/omnicampaigns"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-1 text-sm py-2 rounded-lg font-medium text-center transition-opacity hover:opacity-80"
+                            style={{ background: "#6366f1", color: "white", display: "block" }}
+                          >
+                            Open Campaigns in Klaviyo →
+                          </a>
+                          <button
+                            onClick={() => {
+                              setAiResult(null); setAiStreamText(""); setAiBrief("");
+                              setAiImages([]); setAiImageSource(null); setShowImages(false);
+                              setAiCreateState("idle"); setAiCreateResult(null); setAiCreateScheduleAt("");
+                            }}
+                            className="text-sm py-2 px-4 rounded-lg"
+                            style={{ background: "var(--bg-subtle)", color: "var(--text-secondary)", border: "1px solid #2a2a3a" }}
+                          >
+                            New Email
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Create campaign form */
+                      <div className="space-y-3 pt-1">
+                        <div className="h-px" style={{ background: "#2a2a3a" }} />
+                        <label className="text-xs font-medium block" style={{ color: "var(--text-secondary)" }}>
+                          Schedule (optional — leave blank to save as draft)
+                        </label>
+                        <input
+                          type="datetime-local"
+                          className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                          style={{ background: "var(--bg-subtle)", border: "1px solid #2a2a3a", color: "var(--text-primary)" }}
+                          value={aiCreateScheduleAt}
+                          onChange={(e) => setAiCreateScheduleAt(e.target.value)}
+                          disabled={aiCreateState === "creating"}
+                        />
+                        {aiCreateError && (
+                          <div className="px-3 py-2 rounded-lg text-xs" style={{ background: "#ef444420", color: "#ef4444" }}>
+                            ❌ {aiCreateError}
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => { setAiResult(null); setAiStreamText(""); setAiImages([]); setAiImageSource(null); setShowImages(false); setAiCreateState("idle"); }}
+                            disabled={aiCreateState === "creating"}
+                            className="text-sm py-2 px-4 rounded-lg disabled:opacity-40"
+                            style={{ background: "var(--bg-subtle)", color: "var(--text-secondary)", border: "1px solid #2a2a3a" }}
+                          >
+                            Rebuild
+                          </button>
+                          <button
+                            onClick={() => handleAiCreate(aiCreateScheduleAt || undefined)}
+                            disabled={aiCreateState === "creating"}
+                            className="flex-1 text-sm py-2 rounded-lg font-medium disabled:opacity-40"
+                            style={{ background: "#6366f1", color: "white" }}
+                          >
+                            {aiCreateState === "creating"
+                              ? "Creating campaign…"
+                              : aiCreateScheduleAt
+                              ? "Schedule Campaign"
+                              : "Save Campaign to Klaviyo"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

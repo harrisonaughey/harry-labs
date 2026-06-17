@@ -85,7 +85,9 @@ const ctaButton = (text: string, url: string, fullWidth = false) => `
 // ─── TEMPLATE A — Hero + Single CTA ─────────────────────────────────────────
 // Based on: "Turn Dinner into a Game Night!" ($300, 45.9% OR, 5.0% CTOR)
 // Best for: Product Launch, Flash Sale, Welcome, Newsletter
-// Pattern: Logo → full-width hero → H1 headline → brief copy → CTA → social proof line
+// Pattern: Logo (dark bg) → HERO WITH HEADLINE ON IMAGE (background-image, Oodie-style)
+//          → Greeting + brief body → Feature strip → Social proof → Dark footer
+// NOTE: Hero image must be landscape 600×380px. Offer/headline text overlaid ON the image.
 
 export const TEMPLATE_A = `<!DOCTYPE html>
 <html lang="en"><head>
@@ -97,37 +99,136 @@ ${CSS}
 {{PREHEADER}}
 ${WRAPPER_OPEN}
 ${CONTAINER_OPEN}
-  {{LOGO_HEADER}}
-  <!-- Hero image -->
+  <!-- Logo on dark background -->
   <tr>
-    <td style="padding:0;line-height:0;">
-      <a href="{{CTA_URL}}">
-        <img src="{{IMAGE_1}}" alt="{{IMAGE_1_ALT}}" width="600" class="hero-img"
-             style="width:100%;max-width:600px;height:auto;display:block;">
+    <td align="center" style="padding:20px 24px 18px;background:#111118;">
+      <a href="https://thinkle.com.au?utm_source=klaviyo&utm_medium=email&utm_campaign={{CAMPAIGN_SLUG}}"
+         style="text-decoration:none;">
+        <img src="https://thinkle.com.au/cdn/shop/files/thinkle_logo_reverse.png?v=1751999403&width=600"
+             width="140" alt="Thinkle — The Family Card Game"
+             style="width:140px;max-width:140px;height:auto;display:block;margin:0 auto;" />
       </a>
     </td>
   </tr>
-  <!-- Headline + body -->
+  <!-- ═══════════════════════════════════════════════════════════════════
+       HERO WITH HEADLINE ON IMAGE — Oodie-style landscape banner
+       background-image on <td> + dark overlay + white headline on top
+       ═══════════════════════════════════════════════════════════════════ -->
   <tr>
-    <td class="mob-pad" style="padding:36px 48px 28px;text-align:center;">
-      <h1 style="margin:0 0 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:32px;font-weight:800;color:#111118;line-height:1.2;letter-spacing:-0.5px;">
-        {{HEADLINE}}
-      </h1>
-      <p style="margin:0 0 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;color:#4b5563;line-height:1.7;">
-        {{BODY_COPY}}
-      </p>
-      {{CTA_BUTTON}}
+    <td background="{{IMAGE_1}}"
+        style="background-image:url('{{IMAGE_1}}');background-size:cover;background-position:center;
+               background-color:#111118;padding:0;line-height:0;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center"
+              style="padding:56px 40px 52px;background:rgba(0,0,0,0.45);min-height:380px;">
+            <!-- Campaign label — small orange all-caps -->
+            <p style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:11px;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:2.5px;">
+              {{CAMPAIGN_LABEL}}</p>
+            <!-- Main headline on the image -->
+            <h1 style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                       font-size:48px;font-weight:900;color:#ffffff;line-height:1.05;
+                       letter-spacing:-1px;text-shadow:0 2px 8px rgba(0,0,0,0.4);">
+              {{HEADLINE}}</h1>
+            <!-- Subline -->
+            <p style="margin:0 0 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:17px;font-weight:500;color:#f3f4f6;line-height:1.5;">
+              {{SUBHEADLINE}}</p>
+            <!-- CTA inside the hero -->
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="#f97316"
+                    style="border-radius:8px;mso-padding-alt:0;">
+                  <a href="{{CTA_URL}}"
+                     style="display:inline-block;padding:16px 48px;
+                            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                            font-size:17px;font-weight:800;color:#ffffff;
+                            text-decoration:none;border-radius:8px;letter-spacing:0.3px;">
+                    {{CTA_TEXT}} →</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
     </td>
   </tr>
-  <!-- Social proof strip -->
+  <!-- Personalized greeting + body copy -->
   <tr>
-    <td style="padding:20px 48px 32px;text-align:center;border-top:1px solid #f5f5f8;">
-      <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#9ca3af;line-height:1.5;">
-        {{SOCIAL_PROOF_LINE}}
-      </p>
+    <td class="mob-pad" style="padding:28px 48px 24px;text-align:center;background:#ffffff;">
+      <p style="margin:0 0 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                font-size:16px;color:#111118;">
+        Hey {{ first_name|default:'there' }} 👋</p>
+      <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                font-size:15px;color:#374151;line-height:1.7;">
+        {{BODY_COPY}}</p>
     </td>
   </tr>
-  {{FOOTER}}
+  <!-- 3-column feature strip -->
+  <tr><td style="padding:16px 24px 4px;background:#ffffff;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" width="33%" style="padding:0 6px;">
+          <p style="margin:0;font-size:22px;">🃏</p>
+          <p style="margin:4px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">
+            Card game</p>
+        </td>
+        <td align="center" width="33%" style="padding:0 6px;">
+          <p style="margin:0;font-size:22px;">👨‍👩‍👧‍👦</p>
+          <p style="margin:4px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">
+            All ages 10+</p>
+        </td>
+        <td align="center" width="33%" style="padding:0 6px;">
+          <p style="margin:0;font-size:22px;">🚀</p>
+          <p style="margin:4px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">
+            Fast AU shipping</p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+  <!-- Shipping trust badge -->
+  <tr><td align="center" style="padding:10px 24px 16px;background:#ffffff;">
+    <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+              font-size:12px;font-weight:600;color:#f97316;letter-spacing:0.3px;">
+      🚚 Free shipping on orders over $50 · Ships in 1–3 business days</p>
+  </td></tr>
+  <!-- Social proof -->
+  <tr>
+    <td style="padding:16px 48px 24px;text-align:center;background:#f9fafb;border-top:1px solid #f0f0f5;">
+      <p style="margin:0 0 4px;font-size:18px;">⭐⭐⭐⭐⭐</p>
+      <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                font-size:13px;color:#6b7280;font-style:italic;line-height:1.5;">
+        {{SOCIAL_PROOF_QUOTE}}</p>
+    </td>
+  </tr>
+  <!-- Dark footer -->
+  <tr>
+    <td style="padding:24px 32px;background:#111118;border-top:2px solid #f97316;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td align="center">
+          <p style="margin:0 0 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:14px;font-weight:800;color:#ffffff;">Thinkle</p>
+          <p style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:12px;color:#9ca3af;line-height:1.5;">
+            The family card game that replaces screen time with face-to-face fun.</p>
+          <p style="margin:0 0 8px;">
+            <a href="https://thinkle.com.au?utm_source=klaviyo&utm_medium=email&utm_campaign={{CAMPAIGN_SLUG}}"
+               style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:12px;color:#f97316;text-decoration:none;font-weight:600;">thinkle.com.au</a>
+          </p>
+          <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:11px;color:#6b7280;line-height:1.5;">
+            You're receiving this because you signed up at thinkle.com.au ·
+            <a href="{{ unsubscribe_url }}" style="color:#6b7280;text-decoration:underline;">Unsubscribe</a>
+          </p>
+        </td></tr>
+      </table>
+    </td>
+  </tr>
 ${CONTAINER_CLOSE}
 ${WRAPPER_CLOSE}
 </body></html>`;
@@ -218,10 +319,13 @@ ${CONTAINER_CLOSE}
 ${WRAPPER_CLOSE}
 </body></html>`;
 
-// ─── TEMPLATE C — Product Grid ───────────────────────────────────────────────
-// Based on: Bundle campaigns, post-purchase upsell
-// Best for: Multi-product promotions, bundle offers, gift guides
-// Pattern: Logo → hero banner (text + offer) → 2-col product grid → CTA → footer
+// ─── TEMPLATE C — Hero + Product Grid ───────────────────────────────────────
+// Based on: Bundle campaigns, post-purchase upsell, gift guides
+// Best for: Multi-product promotions, bundle offers, seasonal gift packs
+// Pattern: Logo (dark) → HERO WITH OFFER TEXT ON IMAGE (bg-image) → greeting
+//          → 2-col product cards (orange accents) → single CTA → feature strip → dark footer
+// NOTE: Hero uses background-image technique same as Templates A & E.
+//       Product cards use Thinkle orange (#f97316) — NOT purple.
 
 export const TEMPLATE_C = `<!DOCTYPE html>
 <html lang="en"><head>
@@ -233,63 +337,189 @@ ${CSS}
 {{PREHEADER}}
 ${WRAPPER_OPEN}
 ${CONTAINER_OPEN}
-  {{LOGO_HEADER}}
-  <!-- Hero banner with offer -->
+  <!-- Logo on dark background -->
   <tr>
-    <td style="padding:0;line-height:0;">
-      <img src="{{IMAGE_1}}" alt="{{IMAGE_1_ALT}}" width="600"
-           style="width:100%;max-width:600px;height:auto;display:block;">
+    <td align="center" style="padding:20px 24px 18px;background:#111118;">
+      <a href="https://thinkle.com.au?utm_source=klaviyo&utm_medium=email&utm_campaign={{CAMPAIGN_SLUG}}"
+         style="text-decoration:none;">
+        <img src="https://thinkle.com.au/cdn/shop/files/thinkle_logo_reverse.png?v=1751999403&width=600"
+             width="140" alt="Thinkle — The Family Card Game"
+             style="width:140px;max-width:140px;height:auto;display:block;margin:0 auto;" />
+      </a>
     </td>
   </tr>
-  <!-- Offer headline -->
+  <!-- ═══════════════════════════════════════════
+       HERO WITH OFFER TEXT ON IMAGE (landscape)
+       ═══════════════════════════════════════════ -->
   <tr>
-    <td style="padding:28px 48px 8px;text-align:center;">
-      <h1 style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:28px;font-weight:800;color:#111118;line-height:1.2;">
-        {{HEADLINE}}
-      </h1>
-      <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:15px;color:#6b7280;line-height:1.6;">
-        {{SUBHEADLINE}}
-      </p>
-    </td>
-  </tr>
-  <!-- Product grid -->
-  <tr>
-    <td style="padding:20px 24px 8px;">
+    <td background="{{IMAGE_1}}"
+        style="background-image:url('{{IMAGE_1}}');background-size:cover;background-position:center;
+               background-color:#111118;padding:0;line-height:0;">
       <table width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <!-- Product 1 -->
-          <td class="col" width="264" valign="top"
-              style="padding:16px;background:#f9f9fb;border-radius:8px;border:1px solid #ebebf0;">
-            <img src="{{PRODUCT_1_IMAGE}}" alt="{{PRODUCT_1_NAME}}" width="232"
-                 style="width:100%;height:auto;display:block;border-radius:6px;margin-bottom:12px;">
-            <p style="margin:0 0 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:700;color:#111118;">{{PRODUCT_1_NAME}}</p>
-            <p style="margin:0 0 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;color:#6b7280;line-height:1.4;">{{PRODUCT_1_DESC}}</p>
-            <p style="margin:0 0 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:800;color:#6366f1;">{{PRODUCT_1_PRICE}}</p>
-            <a href="{{PRODUCT_1_URL}}" style="display:inline-block;padding:10px 20px;background:#6366f1;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:700;border-radius:6px;text-decoration:none;">Shop Now</a>
-          </td>
-          <!-- Spacer -->
-          <td width="16" style="width:16px;">&nbsp;</td>
-          <!-- Product 2 -->
-          <td class="col" width="264" valign="top"
-              style="padding:16px;background:#f9f9fb;border-radius:8px;border:1px solid #ebebf0;">
-            <img src="{{PRODUCT_2_IMAGE}}" alt="{{PRODUCT_2_NAME}}" width="232"
-                 style="width:100%;height:auto;display:block;border-radius:6px;margin-bottom:12px;">
-            <p style="margin:0 0 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:700;color:#111118;">{{PRODUCT_2_NAME}}</p>
-            <p style="margin:0 0 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;color:#6b7280;line-height:1.4;">{{PRODUCT_2_DESC}}</p>
-            <p style="margin:0 0 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:16px;font-weight:800;color:#6366f1;">{{PRODUCT_2_PRICE}}</p>
-            <a href="{{PRODUCT_2_URL}}" style="display:inline-block;padding:10px 20px;background:#6366f1;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:700;border-radius:6px;text-decoration:none;">Shop Now</a>
+          <td align="center"
+              style="padding:48px 40px 44px;background:rgba(0,0,0,0.48);min-height:320px;">
+            <p style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:11px;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:2.5px;">
+              {{CAMPAIGN_LABEL}}</p>
+            <h1 style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                       font-size:48px;font-weight:900;color:#ffffff;line-height:1.05;
+                       letter-spacing:-1px;text-shadow:0 2px 8px rgba(0,0,0,0.5);">
+              {{OFFER_HEADLINE}}</h1>
+            <p style="margin:0 0 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:17px;font-weight:600;color:#f3f4f6;line-height:1.4;">
+              {{OFFER_SUBLINE}}</p>
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="#f97316" style="border-radius:8px;mso-padding-alt:0;">
+                  <a href="{{CTA_URL}}"
+                     style="display:inline-block;padding:14px 44px;
+                            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                            font-size:16px;font-weight:800;color:#ffffff;
+                            text-decoration:none;border-radius:8px;letter-spacing:0.3px;">
+                    {{CTA_TEXT}} →</a>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
       </table>
     </td>
   </tr>
-  <!-- Main CTA -->
+  <!-- Greeting + intro -->
   <tr>
-    <td style="padding:28px 48px 32px;text-align:center;">
-      {{CTA_BUTTON}}
+    <td style="padding:24px 40px 8px;text-align:center;background:#ffffff;">
+      <p style="margin:0 0 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                font-size:16px;color:#111118;">
+        Hey {{ first_name|default:'there' }} 👋</p>
+      <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                font-size:15px;color:#6b7280;line-height:1.6;">
+        {{INTRO_COPY}}</p>
     </td>
   </tr>
-  {{FOOTER}}
+  <!-- ─── 2-col Product grid ─────────────────────────────────────────── -->
+  <tr>
+    <td style="padding:16px 20px 8px;background:#ffffff;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <!-- Product 1 -->
+          <td class="col" width="270" valign="top"
+              style="padding:16px;background:#f9fafb;border-radius:10px;border:1px solid #f0f0f5;">
+            <img src="{{PRODUCT_1_IMAGE}}" alt="{{PRODUCT_1_NAME}}" width="238"
+                 style="width:100%;height:auto;display:block;border-radius:6px;margin-bottom:12px;">
+            <p style="margin:0 0 3px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:13px;font-weight:800;color:#111118;line-height:1.3;">{{PRODUCT_1_NAME}}</p>
+            <p style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:12px;color:#6b7280;line-height:1.4;">{{PRODUCT_1_DESC}}</p>
+            <p style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:17px;font-weight:900;color:#f97316;">{{PRODUCT_1_PRICE}}</p>
+            <a href="{{PRODUCT_1_URL}}"
+               style="display:inline-block;padding:10px 22px;background:#111118;color:#fff;
+                      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:12px;font-weight:700;border-radius:6px;text-decoration:none;">
+              Shop Now →</a>
+          </td>
+          <!-- Spacer -->
+          <td width="12" style="width:12px;">&nbsp;</td>
+          <!-- Product 2 -->
+          <td class="col" width="270" valign="top"
+              style="padding:16px;background:#f9fafb;border-radius:10px;border:1px solid #f0f0f5;">
+            <img src="{{PRODUCT_2_IMAGE}}" alt="{{PRODUCT_2_NAME}}" width="238"
+                 style="width:100%;height:auto;display:block;border-radius:6px;margin-bottom:12px;">
+            <p style="margin:0 0 3px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:13px;font-weight:800;color:#111118;line-height:1.3;">{{PRODUCT_2_NAME}}</p>
+            <p style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:12px;color:#6b7280;line-height:1.4;">{{PRODUCT_2_DESC}}</p>
+            <p style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:17px;font-weight:900;color:#f97316;">{{PRODUCT_2_PRICE}}</p>
+            <a href="{{PRODUCT_2_URL}}"
+               style="display:inline-block;padding:10px 22px;background:#111118;color:#fff;
+                      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:12px;font-weight:700;border-radius:6px;text-decoration:none;">
+              Shop Now →</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <!-- Main CTA below grid -->
+  <tr>
+    <td style="padding:20px 40px 16px;text-align:center;background:#ffffff;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td align="center" bgcolor="#f97316" style="border-radius:8px;mso-padding-alt:0;">
+            <a href="{{CTA_URL}}"
+               style="display:block;padding:16px 40px;
+                      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:16px;font-weight:800;color:#ffffff;text-decoration:none;
+                      border-radius:8px;letter-spacing:0.3px;">
+              {{MAIN_CTA_TEXT}} →</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <!-- 3-column feature strip -->
+  <tr><td style="padding:14px 24px 4px;background:#ffffff;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" width="33%" style="padding:0 6px;">
+          <p style="margin:0;font-size:22px;">🃏</p>
+          <p style="margin:4px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">Card game</p>
+        </td>
+        <td align="center" width="33%" style="padding:0 6px;">
+          <p style="margin:0;font-size:22px;">👨‍👩‍👧‍👦</p>
+          <p style="margin:4px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">All ages 10+</p>
+        </td>
+        <td align="center" width="33%" style="padding:0 6px;">
+          <p style="margin:0;font-size:22px;">🚀</p>
+          <p style="margin:4px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">Fast AU shipping</p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+  <!-- Shipping badge -->
+  <tr><td align="center" style="padding:10px 24px 14px;background:#ffffff;">
+    <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+              font-size:12px;font-weight:600;color:#f97316;letter-spacing:0.3px;">
+      🚚 Free shipping on orders over $50 · Ships in 1–3 business days</p>
+  </td></tr>
+  <!-- Social proof -->
+  <tr>
+    <td style="padding:14px 40px 20px;text-align:center;background:#f9fafb;border-top:1px solid #f0f0f5;">
+      <p style="margin:0 0 4px;font-size:18px;">⭐⭐⭐⭐⭐</p>
+      <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                font-size:13px;color:#6b7280;font-style:italic;line-height:1.5;">
+        {{SOCIAL_PROOF_QUOTE}}</p>
+    </td>
+  </tr>
+  <!-- Dark footer -->
+  <tr>
+    <td style="padding:24px 32px;background:#111118;border-top:2px solid #f97316;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td align="center">
+          <p style="margin:0 0 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:14px;font-weight:800;color:#ffffff;">Thinkle</p>
+          <p style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:12px;color:#9ca3af;line-height:1.5;">
+            The family card game that replaces screen time with face-to-face fun.</p>
+          <p style="margin:0 0 8px;">
+            <a href="https://thinkle.com.au?utm_source=klaviyo&utm_medium=email&utm_campaign={{CAMPAIGN_SLUG}}"
+               style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:12px;color:#f97316;text-decoration:none;font-weight:600;">thinkle.com.au</a>
+          </p>
+          <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:11px;color:#6b7280;line-height:1.5;">
+            You're receiving this because you signed up at thinkle.com.au ·
+            <a href="{{ unsubscribe_url }}" style="color:#6b7280;text-decoration:underline;">Unsubscribe</a>
+          </p>
+        </td></tr>
+      </table>
+    </td>
+  </tr>
 ${CONTAINER_CLOSE}
 ${WRAPPER_CLOSE}
 </body></html>`;
@@ -348,7 +578,11 @@ ${WRAPPER_CLOSE}
 // HIGHEST CONVERTING — $0.376 RPR (Halloween #3 12h, 646 recipients → $242)
 // Also: Afterpay Ending ($287), BF Launch Live #2 ($240)
 // Best for: Flash sale ending, last chance, "X hours left", sale finale
-// Pattern: Red urgency bar → Logo → Hero image → Offer headline → Deadline copy → BIG CTA → Social proof → footer
+// Pattern: Orange urgency bar → Logo (dark bg) → HERO WITH OFFER TEXT ON IMAGE (background-image)
+//          → Greeting + brief body copy → Feature strip → Social proof → footer
+// NOTE: The hero image must display the offer text ON the image (Oodie-style).
+//       Use background-image on <td> with rgba dark overlay + white text on top.
+//       IMAGE_1 should be landscape (600×380 display / 1200×760 source).
 
 export const TEMPLATE_E = `<!DOCTYPE html>
 <html lang="en"><head>
@@ -360,60 +594,148 @@ ${CSS}
 {{PREHEADER}}
 ${WRAPPER_OPEN}
 ${CONTAINER_OPEN}
-  <!-- ⚡ URGENCY BAR — the most important element in this template -->
+  <!-- ⚡ URGENCY BAR — full-width orange, bold white, emoji -->
   <tr>
-    <td align="center" style="padding:14px 24px;background:#dc2626;">
-      <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:700;color:#ffffff;letter-spacing:0.5px;text-transform:uppercase;">
+    <td align="center" style="padding:13px 24px;background:#f97316;">
+      <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:800;color:#ffffff;letter-spacing:1px;text-transform:uppercase;">
         {{URGENCY_BAR_TEXT}}
       </p>
     </td>
   </tr>
-  {{LOGO_HEADER}}
-  <!-- Hero image -->
+  <!-- Logo on dark background -->
   <tr>
-    <td style="padding:0;line-height:0;">
-      <a href="{{CTA_URL}}">
-        <img src="{{IMAGE_1}}" alt="{{IMAGE_1_ALT}}" width="600"
-             style="width:100%;max-width:600px;height:auto;display:block;">
+    <td align="center" style="padding:20px 24px 18px;background:#111118;">
+      <a href="https://thinkle.com.au?utm_source=klaviyo&utm_medium=email&utm_campaign={{CAMPAIGN_SLUG}}"
+         style="text-decoration:none;">
+        <img src="https://thinkle.com.au/cdn/shop/files/thinkle_logo_reverse.png?v=1751999403&width=600"
+             width="140" alt="Thinkle — The Family Card Game"
+             style="width:140px;max-width:140px;height:auto;display:block;margin:0 auto;" />
       </a>
     </td>
   </tr>
-  <!-- Offer headline -->
+  <!-- ═══════════════════════════════════════════════════════════════════
+       HERO WITH OFFER TEXT ON THE IMAGE — Oodie-style landscape banner
+       background-image on <td> with dark rgba overlay + white text on top
+       Image must be landscape 600×380px display / 1200×760 source
+       ═══════════════════════════════════════════════════════════════════ -->
   <tr>
-    <td class="mob-pad" style="padding:32px 48px 8px;text-align:center;">
-      <p style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:1.5px;">
-        {{URGENCY_LABEL}}
-      </p>
-      <h1 style="margin:0 0 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:36px;font-weight:900;color:#111118;line-height:1.15;letter-spacing:-1px;">
-        {{OFFER_HEADLINE}}
-      </h1>
-      <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:18px;font-weight:600;color:#6b7280;line-height:1.4;">
-        {{OFFER_SUBLINE}}
-      </p>
+    <td background="{{IMAGE_1}}"
+        style="background-image:url('{{IMAGE_1}}');background-size:cover;background-position:center top;
+               background-color:#111118;padding:0;line-height:0;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center"
+              style="padding:56px 40px 52px;background:rgba(0,0,0,0.48);min-height:380px;">
+            <!-- Campaign label — small orange all-caps -->
+            <p style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:11px;font-weight:800;color:#f97316;text-transform:uppercase;letter-spacing:2.5px;">
+              {{CAMPAIGN_LABEL}}</p>
+            <!-- Core offer — very large, high contrast -->
+            <h1 style="margin:0 0 10px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                       font-size:56px;font-weight:900;color:#ffffff;line-height:1;
+                       letter-spacing:-1.5px;text-shadow:0 2px 8px rgba(0,0,0,0.5);">
+              {{OFFER_HEADLINE}}</h1>
+            <!-- Subline / deadline -->
+            <p style="margin:0 0 28px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                      font-size:18px;font-weight:600;color:#f3f4f6;line-height:1.4;">
+              {{OFFER_SUBLINE}}</p>
+            <!-- CTA button inside the hero image -->
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="#f97316"
+                    style="border-radius:8px;mso-padding-alt:0;">
+                  <a href="{{CTA_URL}}"
+                     style="display:inline-block;padding:16px 48px;
+                            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                            font-size:17px;font-weight:800;color:#ffffff;
+                            text-decoration:none;border-radius:8px;letter-spacing:0.3px;">
+                    {{CTA_TEXT}} →</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
     </td>
   </tr>
-  <!-- Deadline + brief copy -->
+  <!-- Personalized greeting + brief body copy -->
   <tr>
-    <td class="mob-pad" style="padding:16px 48px 24px;text-align:center;">
-      <p style="margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:15px;color:#374151;line-height:1.6;">
-        {{BODY_COPY}}
-      </p>
-      {{CTA_BUTTON}}
-      <p style="margin:16px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:12px;color:#9ca3af;">
-        {{PROMO_CODE_LINE}}
-      </p>
+    <td class="mob-pad" style="padding:28px 48px 8px;text-align:center;background:#ffffff;">
+      <p style="margin:0 0 6px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                font-size:16px;color:#111118;line-height:1.6;">
+        Hey {{ first_name|default:'there' }} 👋</p>
+      <p style="margin:0 0 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                font-size:15px;color:#374151;line-height:1.7;">
+        {{BODY_COPY}}</p>
+      <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                font-size:12px;color:#9ca3af;">
+        {{PROMO_CODE_LINE}}</p>
     </td>
   </tr>
-  <!-- Social proof strip -->
+  <!-- 3-column feature strip -->
+  <tr><td style="padding:16px 24px 4px;background:#ffffff;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" width="33%" style="padding:0 6px;">
+          <p style="margin:0;font-size:22px;">🃏</p>
+          <p style="margin:4px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">
+            Card game</p>
+        </td>
+        <td align="center" width="33%" style="padding:0 6px;">
+          <p style="margin:0;font-size:22px;">👨‍👩‍👧‍👦</p>
+          <p style="margin:4px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">
+            All ages 10+</p>
+        </td>
+        <td align="center" width="33%" style="padding:0 6px;">
+          <p style="margin:0;font-size:22px;">🚀</p>
+          <p style="margin:4px 0 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">
+            Fast AU shipping</p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+  <!-- Shipping trust badge -->
+  <tr><td align="center" style="padding:10px 24px 16px;background:#ffffff;">
+    <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+              font-size:12px;font-weight:600;color:#f97316;letter-spacing:0.3px;">
+      🚚 Free shipping on orders over $50 · Ships in 1–3 business days</p>
+  </td></tr>
+  <!-- Social proof -->
   <tr>
-    <td style="padding:20px 48px 28px;text-align:center;background:#fafafa;border-top:1px solid #f0f0f5;">
+    <td style="padding:16px 48px 24px;text-align:center;background:#f9fafb;border-top:1px solid #f0f0f5;">
       <p style="margin:0 0 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:20px;">⭐⭐⭐⭐⭐</p>
       <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:13px;color:#6b7280;font-style:italic;line-height:1.5;">
-        {{SOCIAL_PROOF_QUOTE}}
-      </p>
+        {{SOCIAL_PROOF_QUOTE}}</p>
     </td>
   </tr>
-  {{FOOTER}}
+  <!-- Dark footer -->
+  <tr>
+    <td style="padding:24px 32px;background:#111118;border-top:2px solid #f97316;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td align="center">
+          <p style="margin:0 0 4px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:14px;font-weight:800;color:#ffffff;letter-spacing:0.5px;">
+            Thinkle</p>
+          <p style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:12px;color:#9ca3af;line-height:1.5;">
+            The family card game that replaces screen time with face-to-face fun.</p>
+          <p style="margin:0 0 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:12px;line-height:1.5;">
+            <a href="https://thinkle.com.au?utm_source=klaviyo&utm_medium=email&utm_campaign={{CAMPAIGN_SLUG}}"
+               style="color:#f97316;text-decoration:none;font-weight:600;">thinkle.com.au</a>
+          </p>
+          <p style="margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+                    font-size:11px;color:#6b7280;line-height:1.5;">
+            You're receiving this because you signed up at thinkle.com.au ·
+            <a href="{{ unsubscribe_url }}" style="color:#6b7280;text-decoration:underline;">Unsubscribe</a>
+          </p>
+        </td></tr>
+      </table>
+    </td>
+  </tr>
 ${CONTAINER_CLOSE}
 ${WRAPPER_CLOSE}
 </body></html>`;

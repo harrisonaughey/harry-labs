@@ -46,6 +46,42 @@ async function gaqlQuery(query: string) {
   return data.results ?? [];
 }
 
+// ─── Previous period (for % change comparison) ───────────────────────────────
+export async function getGooglePreviousStats(days: number) {
+  const until = new Date();
+  until.setDate(until.getDate() - days - 1);
+  const since = new Date(until);
+  since.setDate(since.getDate() - days + 1);
+  const fmt = (d: Date) => d.toISOString().split("T")[0];
+
+  const rows = await gaqlQuery(`
+    SELECT
+      metrics.cost_micros,
+      metrics.impressions,
+      metrics.clicks,
+      metrics.ctr,
+      metrics.average_cpc,
+      metrics.conversions,
+      metrics.conversions_value,
+      metrics.cost_per_conversion
+    FROM customer
+    WHERE segments.date BETWEEN '${fmt(since)}' AND '${fmt(until)}'
+  `);
+  const r     = rows[0]?.metrics ?? {};
+  const spend = (r.costMicros ?? 0) / 1_000_000;
+  const convValue = r.conversionsValue ?? 0;
+  return {
+    spend,
+    impressions:     r.impressions      ?? 0,
+    clicks:          r.clicks           ?? 0,
+    ctr:             (r.ctr             ?? 0) * 100,
+    avgCpc:          (r.averageCpc      ?? 0) / 1_000_000,
+    conversions:     r.conversions      ?? 0,
+    conversionValue: convValue,
+    roas:            spend > 0 ? convValue / spend : 0,
+  };
+}
+
 // ─── Account-level summary ────────────────────────────────────────────────────
 export async function getGoogleAccountStats(days = 30) {
   const rows = await gaqlQuery(`

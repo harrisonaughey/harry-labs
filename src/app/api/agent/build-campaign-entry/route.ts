@@ -23,7 +23,7 @@ import {
   matchImagesToSlots,
   buildKlaviyoImageCatalogue,
 } from "@/lib/klaviyo-images";
-import { matchDesignRule, buildDesignRulesPrompt, type DesignRule } from "@/lib/design-rules";
+import { matchDesignRule, buildDesignRulesPrompt, buildBrandStandardsPrompt, type DesignRule } from "@/lib/design-rules";
 
 const STORE_ID = "50f89d8a-ae07-4999-9ec7-4304a2f6c51b";
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -43,13 +43,23 @@ function parseHtml(raw: string): string {
 }
 
 function parseSubject(raw: string): string {
-  const block = raw.match(/## Subject Line Variants\s*([\s\S]*?)(?=\n## |$)/i)?.[1] ?? "";
-  const lines = block
+  const block = raw.match(/## Subject Line(?:\s*Variants?)?\s*([\s\S]*?)(?=\n## |$)/i)?.[1] ?? "";
+
+  // Pull first numbered or bulleted line
+  const candidates = block
     .split("\n")
-    .filter((l) => /^\d\./.test(l.trim()))
-    .map((l) => l.replace(/^\d\.\s*/, "").replace(/\[.*?—.*?\]\s*/, "").trim())
-    .filter(Boolean);
-  return lines[0] ?? "";
+    .filter((l) => /^[\d\-\*•]/.test(l.trim()))
+    .map((l) => {
+      let s = l.replace(/^[\d\.\-\*•]+\s*/, ""); // strip list marker
+      s = s.replace(/\*\*(.*?)\*\*/g, "$1");       // strip bold markdown
+      s = s.replace(/\s*\(\d+\s*chars?\).*$/i, ""); // strip "(37 chars) — ..." analysis
+      s = s.replace(/\s*—\s*(Primary|Secondary|Urgency|Curiosity|Offer|Deadline).*$/i, ""); // strip labels
+      s = s.replace(/\[.*?\]/g, "");                // strip [brackets]
+      return s.trim();
+    })
+    .filter((s) => s.length > 0 && s.length <= 80);
+
+  return candidates[0] ?? "";
 }
 
 function parsePreviewText(raw: string): string {
@@ -173,20 +183,24 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 5. Build Claude user message ─────────────────────────────────────────
-    const colorPrimary = matchedRule?.color_primary ?? "#6366f1";
-    const colorAccent  = matchedRule?.color_accent  ?? "#f59e0b";
+    // Brand standards + performance rules are ALWAYS injected (even when no
+    // rule matched) via buildDesignRulesPrompt / buildBrandStandardsPrompt.
+    // The old purple/amber defaults are replaced by Thinkle's brand orange.
+    const designBlock = matchedRule
+      ? buildDesignRulesPrompt(matchedRule)
+      : buildBrandStandardsPrompt();
 
     const userMessage = [
       `Campaign name: ${name.trim()}`,
       listId         ? `Target Klaviyo list ID: ${listId}` : null,
       send_at        ? `Send date: ${new Date(send_at).toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}` : null,
       destinationUrl ? `CTA destination URL: ${destinationUrl}` : null,
-      `Brand colours — Primary: ${colorPrimary} | Secondary: #818cf8 | Accent: ${colorAccent}`,
       ``,
       `Brief: ${briefText}`,
       ``,
-      // Inject design rules BEFORE template selection guidance
-      ...(matchedRule ? [buildDesignRulesPrompt(matchedRule), ``] : []),
+      // Brand standards + design rule always injected BEFORE template guidance
+      designBlock,
+      ``,
       `## Email type selected`,
       `Based on ${matchedRule ? `the matched design rule (${matchedRule.name})` : "this brief"}, the system has selected: **${tmplMeta.name}**`,
       `Best for: ${tmplMeta.bestFor}`,

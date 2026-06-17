@@ -27,7 +27,7 @@ import {
   matchImagesToSlots,
   buildKlaviyoImageCatalogue,
 } from "@/lib/klaviyo-images";
-import { matchDesignRule, buildDesignRulesPrompt, type DesignRule } from "@/lib/design-rules";
+import { matchDesignRule, buildDesignRulesPrompt, buildBrandStandardsPrompt, type DesignRule } from "@/lib/design-rules";
 
 const LOOK_AHEAD_DAYS = 7; // process entries scheduled in the next N days
 
@@ -48,13 +48,22 @@ function parseHtml(raw: string): string {
 }
 
 function parseSubject(raw: string): string {
-  const block = raw.match(/## Subject Line Variants\s*([\s\S]*?)(?=\n## |$)/i)?.[1] ?? "";
-  const lines = block
+  const block = raw.match(/## Subject Line(?:\s*Variants?)?\s*([\s\S]*?)(?=\n## |$)/i)?.[1] ?? "";
+
+  const candidates = block
     .split("\n")
-    .filter((l) => /^\d\./.test(l.trim()))
-    .map((l) => l.replace(/^\d\.\s*/, "").replace(/\[.*?—.*?\]\s*/, "").trim())
-    .filter(Boolean);
-  return lines[0] ?? "";
+    .filter((l) => /^[\d\-\*•]/.test(l.trim()))
+    .map((l) => {
+      let s = l.replace(/^[\d\.\-\*•]+\s*/, "");
+      s = s.replace(/\*\*(.*?)\*\*/g, "$1");
+      s = s.replace(/\s*\(\d+\s*chars?\).*$/i, "");
+      s = s.replace(/\s*—\s*(Primary|Secondary|Urgency|Curiosity|Offer|Deadline).*$/i, "");
+      s = s.replace(/\[.*?\]/g, "");
+      return s.trim();
+    })
+    .filter((s) => s.length > 0 && s.length <= 80);
+
+  return candidates[0] ?? "";
 }
 
 function parsePreviewText(raw: string): string {
@@ -114,11 +123,8 @@ async function runAgent(storeId?: string) {
       .eq("id", entryId);
 
     try {
-      // 3. Build brand context from linked product (fallback to Thinkle defaults)
-      const product = entry.products as any;
-      const brandPrimary   = product?.brand_color_primary   ?? "#6366f1";
-      const brandSecondary = product?.brand_color_secondary ?? "#818cf8";
-      const brandAccent    = product?.brand_color_accent    ?? "#f59e0b";
+      // 3. Build brand context from linked product (fallback to Thinkle brand colours)
+      const product        = entry.products as any;
       const productTitle   = product?.title ?? "Thinkle";
 
       const brief = entry.brief
@@ -149,9 +155,11 @@ async function runAgent(storeId?: string) {
         imageCat = buildImageCatalogueText(selectImages(brief));
       }
 
-      // Use colour overrides from design rule if present
-      const colorPrimary = matchedRule?.color_primary ?? brandPrimary;
-      const colorAccent  = matchedRule?.color_accent  ?? brandAccent;
+      // Brand standards + design rule are ALWAYS injected — Thinkle colours,
+      // logo, fonts, and performance best-practices are applied to every email.
+      const designBlock = matchedRule
+        ? buildDesignRulesPrompt(matchedRule)
+        : buildBrandStandardsPrompt();
 
       const userMessage = [
         `Campaign name: ${entry.name}`,
@@ -161,12 +169,12 @@ async function runAgent(storeId?: string) {
           : null,
         entry.destination_url ? `CTA destination URL: ${entry.destination_url}` : null,
         `Product: ${productTitle}`,
-        `Brand colours — Primary: ${colorPrimary} | Secondary: ${brandSecondary} | Accent: ${colorAccent}`,
         ``,
         `Brief: ${brief}`,
         ``,
-        // Inject design rules BEFORE template selection guidance
-        ...(matchedRule ? [buildDesignRulesPrompt(matchedRule), ``] : []),
+        // Brand standards + design rule always injected BEFORE template guidance
+        designBlock,
+        ``,
         `## Email type selected`,
         `Based on ${matchedRule ? `the matched design rule (${matchedRule.name})` : "this brief"}, the system has selected: **${tmplMeta.name}**`,
         `Best for: ${tmplMeta.bestFor}`,

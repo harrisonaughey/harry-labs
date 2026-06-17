@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "harry-labs",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000
+    }
+  ],
+  "static": [
+    {
+      "name": "email-preview",
+      "directory": "/tmp",
+      "port": 7788
+    }
+  ]
+}

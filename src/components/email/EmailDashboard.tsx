@@ -12,12 +12,16 @@ const RANGES = [
   { label: "All time", days: null },
 ];
 
+type List = { id: string; attributes: { name: string } };
+
 type Props = {
-  campaigns: any[];
-  flows: any[];
+  campaigns:       any[];
+  flows:           any[];
+  lists:           List[];
+  calendarEntries: any[];
 };
 
-export default function EmailDashboard({ campaigns, flows }: Props) {
+export default function EmailDashboard({ campaigns, flows, lists, calendarEntries }: Props) {
   const [tab,  setTab]  = useState<"campaigns" | "flows">("campaigns");
   const [days, setDays] = useState<number | null>(30);
 
@@ -83,6 +87,8 @@ export default function EmailDashboard({ campaigns, flows }: Props) {
             campaigns={campaigns}
             filtered={filteredCampaigns}
             days={days}
+            lists={lists}
+            calendarEntries={calendarEntries}
           />
         </>
       ) : (

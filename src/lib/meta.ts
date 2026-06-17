@@ -122,6 +122,47 @@ export async function getMetaDailySpend(days = 30) {
   }));
 }
 
+// ─── Previous period (for % change comparison) ───────────────────────────────
+export async function getMetaPreviousInsights(days: number) {
+  const until = new Date();
+  until.setDate(until.getDate() - days - 1);
+  const since = new Date(until);
+  since.setDate(since.getDate() - days + 1);
+  const fmt = (d: Date) => d.toISOString().split("T")[0];
+  const data = await metaGet(`/${accountId()}/insights`, {
+    fields: "spend,impressions,reach,clicks,ctr,cpc,actions,action_values",
+    time_range: JSON.stringify({ since: fmt(since), until: fmt(until) }),
+    level: "account",
+  });
+  const row = data.data?.[0] ?? {};
+  const purchases = row.actions?.find((a: any) => a.action_type === "purchase")?.value ?? "0";
+  const purchaseValue = row.action_values?.find((a: any) => a.action_type === "purchase")?.value ?? "0";
+  const spend = parseFloat(row.spend ?? "0");
+  return {
+    spend,
+    impressions: parseInt(row.impressions ?? "0"),
+    reach:       parseInt(row.reach       ?? "0"),
+    clicks:      parseInt(row.clicks      ?? "0"),
+    ctr:         parseFloat(row.ctr       ?? "0"),
+    cpc:         parseFloat(row.cpc       ?? "0"),
+    purchases:   parseInt(purchases),
+    purchaseValue: parseFloat(purchaseValue),
+    roas: spend > 0 ? parseFloat(purchaseValue) / spend : 0,
+  };
+}
+
+// ─── Month-to-date spend ──────────────────────────────────────────────────────
+export async function getMetaMonthSpend(): Promise<number> {
+  try {
+    const data = await metaGet(`/${accountId()}/insights`, {
+      fields: "spend",
+      date_preset: "this_month",
+      level: "account",
+    });
+    return parseFloat(data.data?.[0]?.spend ?? "0");
+  } catch { return 0; }
+}
+
 // ─── Campaign actions (pause / activate / set budget) ────────────────────────
 export async function setCampaignStatus(campaignId: string, status: "ACTIVE" | "PAUSED") {
   return metaPost(`/${campaignId}`, { status });

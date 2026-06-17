@@ -22,7 +22,8 @@ export const DRIVE_IMAGES: DriveImage[] = [
   {
     id: "1YICh6ZPZy4yzcYBN9LZsbXv40RctyAs6",
     filename: "photo.jpg",
-    embedUrl: "https://drive.usercontent.google.com/download?id=1YICh6ZPZy4yzcYBN9LZsbXv40RctyAs6&export=view",
+    // Uploaded to Klaviyo CDN 2026-06-11 — permanent URL, no auth required
+    embedUrl: "https://d3k81ch9hvuctc.cloudfront.net/company/X7G8qZ/images/95855230-298a-414a-a3ed-32ad8f65c4dc.jpeg",
     description: "High-resolution professional lifestyle photo: young woman laughing joyfully at a table during a game, warm natural light, clean background. NO promotional text. Premium editorial quality.",
     hasBakedText: false,
     bakedTextDetails: null,
@@ -32,7 +33,8 @@ export const DRIVE_IMAGES: DriveImage[] = [
   {
     id: "1p2Nai0JWxlYNueqaic9HxBvRr2-V8g7x",
     filename: "1.png",
-    embedUrl: "https://drive.usercontent.google.com/download?id=1p2Nai0JWxlYNueqaic9HxBvRr2-V8g7x&export=view",
+    // Uploaded to Klaviyo CDN 2026-06-11 — permanent URL
+    embedUrl: "https://d3k81ch9hvuctc.cloudfront.net/company/X7G8qZ/images/7952003d-8e67-44e6-8ec1-bee0f07fa243.png",
     description: "Black Friday promotional banner: dark chalkboard background, bold 'BLACK FRIDAY SPECIAL SUPER SALE' text, 'DISCOUNT $10 OFF', Thinkle orange card box product shot, confetti. Text baked in.",
     hasBakedText: true,
     bakedTextDetails: "BLACK FRIDAY | $10 OFF | SPECIAL SUPER SALE",
@@ -82,7 +84,8 @@ export const DRIVE_IMAGES: DriveImage[] = [
   {
     id: "1N_Qv2mMISaEwLXWUdbWJooABV9GcZ8kk",
     filename: "6.png",
-    embedUrl: "https://drive.usercontent.google.com/download?id=1N_Qv2mMISaEwLXWUdbWJooABV9GcZ8kk&export=view",
+    // Uploaded to Klaviyo CDN 2026-06-11 — permanent URL
+    embedUrl: "https://d3k81ch9hvuctc.cloudfront.net/company/X7G8qZ/images/75bbe290-84d0-4643-832e-7f55ac038de0.png",
     description: "Christmas promotional: cream background, illustrated Christmas tree with Thinkle boxes as gifts, child opening present photo, '$10 OFF | SHOP NOW' CTA, 'WRAP UP SOME FUN THIS YEAR WHILE STOCK LASTS'. Text baked in.",
     hasBakedText: true,
     bakedTextDetails: "$10 OFF | Christmas | WHILE STOCK LASTS",
@@ -186,5 +189,5 @@ IMPORTANT: Images marked ⚠️ have discount amounts or seasonal branding baked
 
 ${lines.join("\n\n")}
 
-NOTE: There is no standalone logo file in the Drive. Use a styled HTML text logo ("thinkle") in the header, or use the Shopify logo URL: https://thinkle.com.au/cdn/shop/files/Thinkle_logo.png (fallback to styled text if that 404s).`;
+LOGO: Always use the verified Shopify CDN logo — https://thinkle.com.au/cdn/shop/files/thinkle_logo_reverse.png?v=1751999403&width=600 (width 160px)`;
 }

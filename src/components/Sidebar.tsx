@@ -36,9 +36,10 @@ const NAV: NavGroup[] = [
   {
     group: "Marketing",
     items: [
-      { label: "Email",         href: "/email",       icon: "✉" },
-      { label: "Paid Ads",      href: "/traffic",     icon: "📡" },
-      { label: "Content",       href: "/content",     icon: "🎬" },
+      { label: "Email",         href: "/email",             icon: "✉"  },
+      { label: "Campaigns",     href: "/content-calendar",  icon: "📅" },
+      { label: "Paid Ads",      href: "/traffic",           icon: "📡" },
+      { label: "Content",       href: "/content",           icon: "🎬" },
     ],
   },
   {

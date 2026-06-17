@@ -49,12 +49,25 @@ async function getKlaviyoLists() {
   }
 }
 
+async function getCalendarEntries() {
+  try {
+    const { data } = await db()
+      .from("content_calendar")
+      .select("id, name, brief, send_at, status, klaviyo_campaign_id")
+      .order("send_at", { ascending: true });
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function EmailPage() {
-  const [stores, campaigns, flows, { lists, templates }] = await Promise.all([
+  const [stores, campaigns, flows, { lists, templates }, calendarEntries] = await Promise.all([
     getStores(),
     getEmailData(),
     getFlowData(),
     getKlaviyoLists(),
+    getCalendarEntries(),
   ]);
 
   return (
@@ -81,7 +94,7 @@ export default async function EmailPage() {
         </div>
 
         {/* Dashboard — tabs, filters, metrics, calendar/flows */}
-        <EmailDashboard campaigns={campaigns} flows={flows} />
+        <EmailDashboard campaigns={campaigns} flows={flows} lists={lists} calendarEntries={calendarEntries} />
       </main>
     </div>
   );

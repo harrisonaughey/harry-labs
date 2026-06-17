@@ -281,10 +281,15 @@ export async function createCampaign(params: {
 
   const campaignId = campaign.data.id as string;
 
-  // 3. Link template to the campaign-message.
+  // 3. Assign the template to the campaign-message.
   //    The POST /campaigns/ response does NOT include campaign-message IDs in its
   //    relationships.data array (only links). We do a separate GET to get the ID
-  //    reliably, then PATCH with two fallback strategies.
+  //    reliably, then POST to the assign-template sub-resource.
+  //
+  //    Klaviyo clones the reusable template and attaches the non-reusable clone
+  //    to the message — this is the only officially-supported assignment method.
+  //    (PATCH /campaign-messages/{id}/ with relationships.template silently fails
+  //    and PATCH /campaign-messages/{id}/relationships/template/ is not a real endpoint.)
   if (templateId) {
     try {
       const msgResp  = await kGet(`/campaigns/${campaignId}/campaign-messages/`);
@@ -292,32 +297,22 @@ export async function createCampaign(params: {
       const messageId = (msgResp.data as any[])?.[0]?.id as string | undefined;
 
       if (messageId) {
-        // Strategy 1 — PATCH the message body with relationships (JSON:API style)
-        try {
-          await kPatch(`/campaign-messages/${messageId}/`, {
-            data: {
-              type: "campaign-message",
-              id: messageId,
-              relationships: {
-                template: { data: { type: "template", id: templateId } },
-              },
+        await kPost(`/campaign-messages/${messageId}/assign-template/`, {
+          data: {
+            type: "campaign-message",
+            id: messageId,
+            relationships: {
+              template: { data: { type: "template", id: templateId } },
             },
-          });
-          console.log(`[klaviyo] ✓ Template ${templateId} linked to message ${messageId}`);
-        } catch (e1: unknown) {
-          // Strategy 2 — PATCH the relationships sub-resource directly
-          console.warn("[klaviyo] Strategy-1 PATCH failed, trying sub-resource:", e1);
-          await kPatch(`/campaign-messages/${messageId}/relationships/template/`, {
-            data: { type: "template", id: templateId },
-          });
-          console.log(`[klaviyo] ✓ Template linked via relationships sub-resource`);
-        }
+          },
+        });
+        console.log(`[klaviyo] ✓ Template ${templateId} assigned to message ${messageId}`);
       } else {
         console.warn(`[klaviyo] Campaign ${campaignId} returned no campaign-messages`);
       }
     } catch (e: unknown) {
       // Non-fatal — both Klaviyo objects exist; log and continue
-      console.error(`[klaviyo] Template link failed (campaign still created):`, e);
+      console.error(`[klaviyo] Template assign failed (campaign still created):`, e);
     }
   }
 

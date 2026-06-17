@@ -2,15 +2,19 @@ import { createClient } from "@supabase/supabase-js";
 import PageLayout from "@/components/shared/PageLayout";
 import { getStores } from "@/lib/stores";
 import Link from "next/link";
+import CampaignDesignerCard from "@/components/automations/CampaignDesignerCard";
 
 export const revalidate = 300;
 
-async function getFlows(storeId?: string) {
-  const supabase = createClient(
+function db() {
+  return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-  const { data } = await supabase
+}
+
+async function getFlows() {
+  const { data } = await db()
     .from("flow_metrics")
     .select("flow_id, flow_name, status, recipients, open_rate, click_rate, revenue, updated_at")
     .order("revenue", { ascending: false })
@@ -18,13 +22,43 @@ async function getFlows(storeId?: string) {
   return data ?? [];
 }
 
+async function getAgentStats() {
+  try {
+    const { data } = await db()
+      .from("agent_actions")
+      .select("id, agent_name, status, created_at")
+      .eq("agent_name", "campaign-designer")
+      .order("created_at", { ascending: false })
+      .limit(10);
+    return data ?? [];
+  } catch { return []; }
+}
+
+async function getCalendarUpcoming() {
+  try {
+    const horizon = new Date();
+    horizon.setDate(horizon.getDate() + 14);
+    const { data } = await db()
+      .from("content_calendar")
+      .select("id, name, send_at, status, klaviyo_campaign_id, klaviyo_template_id")
+      .lte("send_at", horizon.toISOString())
+      .order("send_at", { ascending: true })
+      .limit(10);
+    return data ?? [];
+  } catch { return []; }
+}
+
 function fmt(n: number) {
   return n >= 1000 ? "$" + (n / 1000).toFixed(1) + "k" : "$" + n.toFixed(2);
 }
 
 export default async function AutomationsPage() {
-  const stores = await getStores();
-  const flows = await getFlows(stores[0]?.id);
+  const [stores, flows, agentActions, calendarEntries] = await Promise.all([
+    getStores(),
+    getFlows(),
+    getAgentStats(),
+    getCalendarUpcoming(),
+  ]);
 
   const STATUS_STYLE: Record<string, { bg: string; text: string }> = {
     live:    { bg: "#10b98120", text: "#10b981" },
@@ -33,22 +67,36 @@ export default async function AutomationsPage() {
     paused:  { bg: "#ef444420", text: "#ef4444" },
   };
 
+  const lastRun = agentActions[0]?.created_at
+    ? new Date(agentActions[0].created_at).toLocaleString("en-AU", {
+        day: "numeric", month: "short", year: "numeric",
+        hour: "2-digit", minute: "2-digit",
+      })
+    : null;
+
   return (
     <PageLayout
       stores={stores}
       activePage="Automations"
       title="Automations"
-      subtitle="Klaviyo flows · automated sequences · performance"
+      subtitle="Klaviyo flows · AI agents · automated campaign design"
       headerRight={
         <Link href="/email"
           className="text-sm px-4 py-2 rounded-lg font-medium hover:opacity-80 transition-opacity"
           style={{ background: "#6366f1", color: "white" }}>
-          ✉ Go to Email Builder
+          ✉ Email Builder
         </Link>
       }
     >
-      {/* Active flows */}
-      <div className="rounded-xl overflow-hidden mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+      {/* ── Campaign Designer Agent ──────────────────────────────────── */}
+      <CampaignDesignerCard
+        calendarEntries={calendarEntries}
+        lastRun={lastRun}
+        recentActions={agentActions}
+      />
+
+      {/* ── Klaviyo Flows ─────────────────────────────────────────────── */}
+      <div className="rounded-xl overflow-hidden mb-6 mt-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
         <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border)" }}>
           <div>
             <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Klaviyo Flows</h2>
@@ -96,7 +144,7 @@ export default async function AutomationsPage() {
         )}
       </div>
 
-      {/* Workflow builder teaser */}
+      {/* ── More agents coming soon ───────────────────────────────────── */}
       <div className="grid grid-cols-2 gap-6">
         <div className="rounded-xl p-6" style={{ background: "var(--bg-card)", border: "1px solid #6366f130" }}>
           <div className="flex items-center gap-3 mb-3">
