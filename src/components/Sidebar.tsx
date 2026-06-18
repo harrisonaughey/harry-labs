@@ -31,6 +31,7 @@ const NAV: NavGroup[] = [
       { label: "Products",      href: "/products",    icon: "🏷" },
       { label: "Amazon",        href: "/amazon",      icon: "📫" },
       { label: "P&L",           href: "/pl",          icon: "📊" },
+      { label: "CFO Hub",        href: "/cfo",         icon: "💼" },
     ],
   },
   {
