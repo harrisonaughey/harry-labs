@@ -447,19 +447,30 @@ export default function CFOView({
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <div>
-      {/* Tab bar */}
-      <div className="flex items-center gap-1 flex-wrap mb-6 p-0.5 rounded-xl w-fit"
-        style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-        {TABS.map((t) => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            className="text-xs px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap"
-            style={{
-              background: tab === t.id ? "#1e1e30" : "transparent",
-              color:      tab === t.id ? "#a5b4fc" : "var(--text-muted)",
-            }}>
-            {t.label}
-          </button>
-        ))}
+      {/* Tab bar + SOP download */}
+      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+        <div className="flex items-center gap-1 flex-wrap p-0.5 rounded-xl"
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+          {TABS.map((t) => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className="text-xs px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap"
+              style={{
+                background: tab === t.id ? "#1e1e30" : "transparent",
+                color:      tab === t.id ? "#a5b4fc" : "var(--text-muted)",
+              }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        <a href="/CFO_Hub_SOP.docx" download="CFO_Hub_SOP.docx"
+          className="flex items-center gap-2 text-xs px-4 py-2 rounded-lg font-medium whitespace-nowrap flex-shrink-0 transition-all"
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-muted)", textDecoration: "none" }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = "#a5b4fc"; (e.currentTarget as HTMLElement).style.borderColor = "#6366f1"; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; }}>
+          <span>📄</span>
+          <span>Download SOP</span>
+        </a>
       </div>
 
       {/* ── EXECUTIVE SUMMARY ───────────────────────────────────────────────── */}
