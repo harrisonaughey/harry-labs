@@ -4,6 +4,7 @@ import TrafficDashboard from "@/components/traffic/TrafficDashboard";
 import { getStores } from "@/lib/stores";
 import { isMetaConnected, checkMetaToken } from "@/lib/meta";
 import { isGoogleConnected } from "@/lib/googleAds";
+import { isTikTokConnected } from "@/lib/tiktok";
 
 export const revalidate = 0; // always check connection status fresh
 
@@ -11,6 +12,7 @@ export default async function TrafficPage() {
   const [stores] = await Promise.all([getStores()]);
   const metaConnected   = isMetaConnected();
   const googleConnected = isGoogleConnected();
+  const tiktokConnected = isTikTokConnected();
   const metaTokenError  = metaConnected ? await checkMetaToken() : null;
 
   return (
@@ -53,6 +55,16 @@ export default async function TrafficPage() {
                   style={{ background: googleConnected ? "#10b981" : "var(--text-faint)" }} />
                 Google {googleConnected ? "connected" : "not connected"}
               </span>
+              <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full"
+                style={{
+                  background: tiktokConnected ? "#10b98115" : "#6b728015",
+                  border:     `1px solid ${tiktokConnected ? "#10b98140" : "var(--border)"}`,
+                  color:      tiktokConnected ? "#10b981" : "var(--text-faint)",
+                }}>
+                <span className="w-1.5 h-1.5 rounded-full"
+                  style={{ background: tiktokConnected ? "#10b981" : "var(--text-faint)" }} />
+                TikTok {tiktokConnected ? "connected" : "not connected"}
+              </span>
             </div>
           </div>
         </div>
@@ -61,6 +73,7 @@ export default async function TrafficPage() {
           metaConnected={metaConnected && !metaTokenError}
           metaTokenError={metaTokenError}
           googleConnected={googleConnected}
+          tiktokConnected={tiktokConnected}
         />
       </main>
     </div>

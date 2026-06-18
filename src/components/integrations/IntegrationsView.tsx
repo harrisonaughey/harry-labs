@@ -9,13 +9,13 @@ type Integration = {
   name:        string;
   icon:        string;
   category:    string;
-  status:      "connected" | "partial" | "not_connected" | "planned";
+  status:      "connected" | "partial" | "not_connected" | "planned" | "guide";
   description: string;
   powers:      string[];
   envVars:     EnvVar[];
   steps:       Step[];
   docsUrl:     string;
-  connected?:  boolean; // runtime check passed from server
+  connected?:  boolean;
 };
 
 const INTEGRATIONS: Integration[] = [
@@ -192,20 +192,33 @@ const INTEGRATIONS: Integration[] = [
     name:     "TikTok Ads",
     icon:     "🎵",
     category: "Paid Traffic",
-    status:   "planned",
-    description: "TikTok Marketing API. Would add a third tab to the Traffic section showing TikTok Ads campaign performance, ROAS, CPM and creative-level analytics.",
-    powers:   ["Planned: Traffic > TikTok tab", "Campaign spend & ROAS", "Creative performance", "Audience insights"],
+    status:   "not_connected",
+    description: "TikTok Marketing API v1.3. Campaign performance, ROAS, 2s hook rate, video play metrics, and AI-powered recommendations in the Paid Ads page.",
+    powers:   ["Traffic > TikTok tab", "Campaign spend & ROAS", "2s VTR hook rate", "Recommendations + Goals", "Blended cross-platform banner"],
     envVars: [
-      { key: "TIKTOK_ACCESS_TOKEN",  label: "Access Token",   hint: "From TikTok for Business → Business Center → API", secret: true },
-      { key: "TIKTOK_APP_ID",        label: "App ID",         hint: "From TikTok Developers portal → Your app" },
-      { key: "TIKTOK_ADVERTISER_ID", label: "Advertiser ID",  hint: "Numeric ID from TikTok Ads Manager" },
+      { key: "TIKTOK_ACCESS_TOKEN",  label: "Access Token",   hint: "Long-lived token from TikTok for Business → Business Center → API", secret: true },
+      { key: "TIKTOK_ADVERTISER_ID", label: "Advertiser ID",  hint: "Numeric ID from TikTok Ads Manager (top of the page)" },
     ],
     steps: [
       { title: "Apply for TikTok Marketing API", body: "Go to ads.tiktok.com → Tools → TikTok API → Apply for access. Requires a Business Center account with active ad spend." },
-      { title: "Create an app", body: "In TikTok Developers portal, create a new app → Web → add your redirect URI. Note your App ID and App Secret." },
-      { title: "Generate Access Token", body: "Via Business Center → API → Generate a long-lived token with scope: campaign.read, adgroup.read, ad.read, report.read." },
+      { title: "Generate a long-lived Access Token", body: "In TikTok Business Center → Settings → API → Generate token. Scopes needed: campaign.read, adgroup.read, ad.read, report.read." },
+      { title: "Find your Advertiser ID", body: "Log in to TikTok Ads Manager. The numeric ID appears in the URL and at the top of the dashboard." },
+      { title: "Add to Vercel and redeploy", body: "Add TIKTOK_ACCESS_TOKEN and TIKTOK_ADVERTISER_ID in your Vercel project settings → Environment Variables, then redeploy." },
     ],
     docsUrl: "https://business-api.tiktok.com/portal/docs",
+  },
+  /* ── GUIDES ──────────────────────────────────────────────────────────────── */
+  {
+    id:       "paid_ads_sop",
+    name:     "Paid Ads Guide",
+    icon:     "📋",
+    category: "Guide",
+    status:   "guide",
+    description: "How to use the Media Buyer features on the Paid Ads page.",
+    powers:   [],
+    envVars:  [],
+    steps:    [],
+    docsUrl:  "",
   },
   {
     id:       "ga4",
@@ -239,6 +252,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Payments":        "#a78bfa",
   "Accounting":      "#34d399",
   "Web Analytics":   "#fb923c",
+  "Guide":           "#e879f9",
 };
 
 const STATUS_CONFIG = {
@@ -246,7 +260,165 @@ const STATUS_CONFIG = {
   partial:       { label: "Partial",       bg: "#f59e0b20", text: "#fbbf24", dot: "#fbbf24" },
   not_connected: { label: "Not connected", bg: "#6b728020", text: "#9ca3af", dot: "#6b7280" },
   planned:       { label: "Planned",       bg: "#6366f120", text: "#818cf8", dot: "#6366f1" },
+  guide:         { label: "Guide",         bg: "#e879f920", text: "#e879f9", dot: "#e879f9" },
 };
+
+// ─── Paid Ads SOP ────────────────────────────────────────────────────────────
+function PaidAdsSOP() {
+  const sections: { title: string; color: string; items: { heading: string; body: string }[] }[] = [
+    {
+      title: "Daily Workflow",
+      color: "#6366f1",
+      items: [
+        {
+          heading: "1. Check Audit Flags",
+          body: "The coloured flag panel beneath the KPI cards runs automatically. Red flags need same-day action — a campaign spending with zero purchases should be paused immediately. Yellow flags are warnings to investigate within the week.",
+        },
+        {
+          heading: "2. Check Budget Pacing",
+          body: "The pacing bar shows month-to-date spend vs. the expected daily pace (yellow marker). If the bar is well behind the marker, budgets may be too low or campaigns have delivery issues. If well ahead, you may overspend the month.",
+        },
+        {
+          heading: "3. Drill Down to Find Weak Links",
+          body: "Click ▸ on any campaign row to expand its ad sets. Click ▸ on an ad set to see individual ads with thumbnail previews. A campaign can look average while hiding one great ad set and one that's burning budget.",
+        },
+        {
+          heading: "4. Take Action Inline",
+          body: "Pause or activate anything by clicking its status badge (ACTIVE / PAUSED). Edit a daily budget by clicking the dollar value — type a new amount and press Enter. All changes are logged automatically.",
+        },
+        {
+          heading: "5. Review the Change Log",
+          body: "Click 📋 Log in the top-right of the Paid Ads page to see every budget edit and status toggle made this session, with before/after values and timestamps.",
+        },
+      ],
+    },
+    {
+      title: "Feature Reference",
+      color: "#10b981",
+      items: [
+        {
+          heading: "Date Range",
+          body: "Switch between 7d / 30d / 90d or pick a Custom date range using the pickers. All KPIs, the spend chart, and the campaign table update together. Use 7d for a weekly pulse check, 30d for monthly reporting.",
+        },
+        {
+          heading: "Performance Goals",
+          body: "Click 🎯 Goals to set a target ROAS and/or CPA. Once set, the ROAS and CPA KPI cards turn green if you're hitting the target and red if not. A goal ROAS miss also creates an audit flag.",
+        },
+        {
+          heading: "Placement Breakdown",
+          body: "Click 📍 Placement Breakdown to see spend and ROAS split by placement — Facebook Feed, Instagram Stories, Reels, Audience Network etc. Use this to identify placements that are draining budget without results and exclude them in the ad set audience settings.",
+        },
+        {
+          heading: "Demographic Breakdown",
+          body: "Click 👥 Demographic Breakdown to see age and gender segments. High spend on a segment with low ROAS suggests you should exclude or reduce bids for that group in the ad set targeting.",
+        },
+        {
+          heading: "Creative Fatigue Flag",
+          body: "At the ad level (▸ campaign → ▸ ad set → ads), any ad with frequency above 3× is flagged ⚡ Creative fatigue. This means the same people are seeing that ad too often — refresh the creative or expand the audience.",
+        },
+        {
+          heading: "CSV Export",
+          body: "Click ↓ CSV to download all campaign data for the selected date range as a spreadsheet. Useful for reporting or pasting into a monthly review doc.",
+        },
+      ],
+    },
+    {
+      title: "Audit Flag Meanings",
+      color: "#f59e0b",
+      items: [
+        {
+          heading: "🔴 Spending without conversions",
+          body: "A campaign with >$10 spend and zero purchases in the selected period. Unless this is a top-of-funnel awareness campaign, pause it and restructure — the audience, creative, or offer isn't converting.",
+        },
+        {
+          heading: "🟡 High frequency (>3.5×)",
+          body: "The average person in this audience has seen this ad more than 3.5 times. Ad fatigue leads to declining CTR and rising CPM. Action: refresh the creative, expand the audience, or create an exclusion list of recent purchasers.",
+        },
+        {
+          heading: "🟡 Below break-even ROAS",
+          body: "The campaign is returning less than $1 for every $1 spent. Action: reduce daily budget to limit losses while testing new creatives, or pause and move budget to campaigns above 2× ROAS.",
+        },
+        {
+          heading: "🟡 Active campaign with $0 spend",
+          body: "The campaign is set to ACTIVE but delivered nothing in the period. Common causes: budget too low for the auction, audience too narrow, learning phase reset, or ad disapproval. Check Meta Ads Manager for specific delivery insights.",
+        },
+      ],
+    },
+    {
+      title: "Common Actions",
+      color: "#818cf8",
+      items: [
+        {
+          heading: "Scale a winning campaign",
+          body: "Find a campaign with ROAS well above your target. Click the budget value (e.g. $50.00 ✏) and increase by 20–30%. Avoid doubling budgets overnight as this resets the learning phase.",
+        },
+        {
+          heading: "Pause underperformers",
+          body: "Click the ACTIVE badge on any campaign or ad set to switch it to PAUSED. The change takes effect immediately via the Meta API. The action is logged in 📋 Log.",
+        },
+        {
+          heading: "Identify best placement",
+          body: "Open 📍 Placement Breakdown. Sort by ROAS mentally — placements below 1× are losing money. Take note of the top placements and consider creating placement-specific ad sets to concentrate budget there.",
+        },
+        {
+          heading: "Find creative fatigue",
+          body: "Expand a campaign → expand an ad set → look for ⚡ Creative fatigue on individual ads. Go to Meta Ads Manager to duplicate the ad set with a fresh creative variation.",
+        },
+      ],
+    },
+  ];
+
+  return (
+    <div className="space-y-5">
+      {/* Hero */}
+      <div className="rounded-xl p-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+            style={{ background: "#e879f915", border: "1px solid #e879f930" }}>
+            📋
+          </div>
+          <div>
+            <h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Paid Ads — Media Buyer Guide</h2>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+              How to read, action, and manage campaigns from the dashboard
+            </p>
+          </div>
+        </div>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+          The Paid Ads page (Traffic → Meta Ads) gives you a full read-write view of your Meta campaigns. You can check performance, drill into ad sets and individual ads, pause or activate anything, adjust budgets, and see placement and demographic breakdowns — all without leaving the dashboard.
+        </p>
+        <div className="mt-4 flex items-center gap-2">
+          <a href="/traffic" className="text-xs px-3 py-1.5 rounded-lg font-medium hover:opacity-80"
+            style={{ background: "#1877F220", color: "#60a5fa", border: "1px solid #1877F240" }}>
+            Open Paid Ads →
+          </a>
+        </div>
+      </div>
+
+      {/* Sections */}
+      {sections.map((section) => (
+        <div key={section.title} className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+          <div className="px-5 py-3 flex items-center gap-2" style={{ background: "var(--bg-card)", borderBottom: "1px solid var(--border)" }}>
+            <div className="w-1.5 h-4 rounded-full" style={{ background: section.color }} />
+            <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{section.title}</h3>
+          </div>
+          <div style={{ background: "var(--bg-card-inner)" }}>
+            {section.items.map((item, i) => (
+              <div key={i} className="px-5 py-4 flex gap-4"
+                style={{ borderTop: i > 0 ? "1px solid var(--border-subtle)" : undefined }}>
+                <div className="w-1 rounded-full flex-shrink-0 mt-1" style={{ background: section.color, opacity: 0.4, alignSelf: "stretch", minHeight: 16 }} />
+                <div>
+                  <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>{item.heading}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>{item.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function IntegrationsView({ connectedIds }: { connectedIds: string[] }) {
   const [selected, setSelected] = useState("shopify");
@@ -310,117 +482,123 @@ export default function IntegrationsView({ connectedIds }: { connectedIds: strin
 
       {/* ── Right: Detail panel ── */}
       <div className="flex-1 min-w-0 overflow-y-auto">
-        {/* Header */}
-        <div className="rounded-xl p-6 mb-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
-                style={{ background: "var(--border)" }}>
-                {current.icon}
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>{current.name}</h2>
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                    style={{ background: statusCfg.bg, color: statusCfg.text }}>
-                    {statusCfg.label}
-                  </span>
-                </div>
-                <span className="text-xs" style={{ color: CATEGORY_COLORS[current.category] }}>
-                  {current.category}
-                </span>
-              </div>
-            </div>
-            <a href={current.docsUrl} target="_blank" rel="noopener noreferrer"
-              className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80 transition-opacity"
-              style={{ background: "#1e1e30", color: "#a5b4fc", border: "1px solid #3730a3" }}>
-              View Docs →
-            </a>
-          </div>
-          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>{current.description}</p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          {/* Powers */}
-          <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>
-              Powers in Dashboard
-            </h3>
-            <ul className="space-y-1.5">
-              {current.powers.map(p => (
-                <li key={p} className="flex items-center gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                  <span style={{ color: statusCfg.dot }}>✓</span> {p}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Env vars */}
-          <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-            <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>
-              Environment Variables
-            </h3>
-            <div className="space-y-3">
-              {current.envVars.map(v => (
-                <div key={v.key} className="rounded-lg p-3" style={{ background: "var(--bg-card-inner)", border: "1px solid var(--border)" }}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium" style={{ color: "var(--text-primary)" }}>{v.label}</span>
-                    <button onClick={() => copyKey(v.key)}
-                      className="flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-all hover:opacity-80"
-                      style={{ background: "#1e1e30", color: copied === v.key ? "#10b981" : "#818cf8" }}>
-                      <code>{v.key}</code>
-                      <span>{copied === v.key ? "✓" : "⧉"}</span>
-                    </button>
+        {current.status === "guide" ? (
+          <PaidAdsSOP />
+        ) : (
+          <>
+            {/* Header */}
+            <div className="rounded-xl p-6 mb-4" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                    style={{ background: "var(--border)" }}>
+                    {current.icon}
                   </div>
-                  <p className="text-xs" style={{ color: "var(--text-faint)" }}>{v.hint}</p>
-                  {v.secret && (
-                    <span className="text-xs mt-1 inline-block" style={{ color: "#374151" }}>🔒 Keep secret — Vercel only</span>
-                  )}
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-semibold" style={{ color: "var(--text-primary)" }}>{current.name}</h2>
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{ background: statusCfg.bg, color: statusCfg.text }}>
+                        {statusCfg.label}
+                      </span>
+                    </div>
+                    <span className="text-xs" style={{ color: CATEGORY_COLORS[current.category] }}>
+                      {current.category}
+                    </span>
+                  </div>
                 </div>
-              ))}
+                <a href={current.docsUrl} target="_blank" rel="noopener noreferrer"
+                  className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80 transition-opacity"
+                  style={{ background: "#1e1e30", color: "#a5b4fc", border: "1px solid #3730a3" }}>
+                  View Docs →
+                </a>
+              </div>
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>{current.description}</p>
             </div>
-          </div>
-        </div>
 
-        {/* Setup steps */}
-        <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-          <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>
-            Setup Guide
-          </h3>
-          <div className="space-y-4">
-            {current.steps.map((step, i) => (
-              <div key={i} className="flex gap-4">
-                <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{ background: statusCfg.bg, color: statusCfg.text, border: `1px solid ${statusCfg.dot}40` }}>
-                  {i + 1}
-                </div>
-                <div className="flex-1 pt-0.5">
-                  <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>{step.title}</p>
-                  <p className="text-sm" style={{ color: "var(--text-muted)" }}>{step.body}</p>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              {/* Powers */}
+              <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+                <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>
+                  Powers in Dashboard
+                </h3>
+                <ul className="space-y-1.5">
+                  {current.powers.map(p => (
+                    <li key={p} className="flex items-center gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
+                      <span style={{ color: statusCfg.dot }}>✓</span> {p}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Env vars */}
+              <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+                <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>
+                  Environment Variables
+                </h3>
+                <div className="space-y-3">
+                  {current.envVars.map(v => (
+                    <div key={v.key} className="rounded-lg p-3" style={{ background: "var(--bg-card-inner)", border: "1px solid var(--border)" }}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium" style={{ color: "var(--text-primary)" }}>{v.label}</span>
+                        <button onClick={() => copyKey(v.key)}
+                          className="flex items-center gap-1 text-xs px-2 py-0.5 rounded transition-all hover:opacity-80"
+                          style={{ background: "#1e1e30", color: copied === v.key ? "#10b981" : "#818cf8" }}>
+                          <code>{v.key}</code>
+                          <span>{copied === v.key ? "✓" : "⧉"}</span>
+                        </button>
+                      </div>
+                      <p className="text-xs" style={{ color: "var(--text-faint)" }}>{v.hint}</p>
+                      {v.secret && (
+                        <span className="text-xs mt-1 inline-block" style={{ color: "#374151" }}>🔒 Keep secret — Vercel only</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Vercel link for not-connected */}
-        {(current.status === "not_connected" || current.status === "planned") && (
-          <div className="mt-4 rounded-xl p-4 flex items-center justify-between"
-            style={{ background: "#6366f110", border: "1px solid #6366f130" }}>
-            <div>
-              <p className="text-sm font-medium" style={{ color: "#a5b4fc" }}>
-                Ready to connect?
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
-                Add the environment variables to Vercel, then redeploy.
-              </p>
             </div>
-            <a href="https://vercel.com/dashboard" target="_blank" rel="noopener noreferrer"
-              className="text-sm px-4 py-2 rounded-lg font-medium hover:opacity-80 transition-opacity flex-shrink-0"
-              style={{ background: "#6366f1", color: "white" }}>
-              Open Vercel →
-            </a>
-          </div>
+
+            {/* Setup steps */}
+            <div className="rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+              <h3 className="text-xs font-semibold uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>
+                Setup Guide
+              </h3>
+              <div className="space-y-4">
+                {current.steps.map((step, i) => (
+                  <div key={i} className="flex gap-4">
+                    <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                      style={{ background: statusCfg.bg, color: statusCfg.text, border: `1px solid ${statusCfg.dot}40` }}>
+                      {i + 1}
+                    </div>
+                    <div className="flex-1 pt-0.5">
+                      <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>{step.title}</p>
+                      <p className="text-sm" style={{ color: "var(--text-muted)" }}>{step.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Vercel link for not-connected */}
+            {(current.status === "not_connected" || current.status === "planned") && (
+              <div className="mt-4 rounded-xl p-4 flex items-center justify-between"
+                style={{ background: "#6366f110", border: "1px solid #6366f130" }}>
+                <div>
+                  <p className="text-sm font-medium" style={{ color: "#a5b4fc" }}>
+                    Ready to connect?
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                    Add the environment variables to Vercel, then redeploy.
+                  </p>
+                </div>
+                <a href="https://vercel.com/dashboard" target="_blank" rel="noopener noreferrer"
+                  className="text-sm px-4 py-2 rounded-lg font-medium hover:opacity-80 transition-opacity flex-shrink-0"
+                  style={{ background: "#6366f1", color: "white" }}>
+                  Open Vercel →
+                </a>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

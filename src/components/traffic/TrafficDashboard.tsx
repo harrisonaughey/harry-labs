@@ -2,22 +2,26 @@
 import { useState, useEffect } from "react";
 import MetaAdsView from "./MetaAdsView";
 import GoogleAdsView from "./GoogleAdsView";
+import TikTokAdsView from "./TikTokAdsView";
 import ConnectCard from "./ConnectCard";
 import SpendChart from "./SpendChart";
 
-type Props = { metaConnected: boolean; metaTokenError?: string | null; googleConnected: boolean };
+type Props = { metaConnected: boolean; metaTokenError?: string | null; googleConnected: boolean; tiktokConnected: boolean };
 
 const TABS = [
   { id: "meta",      label: "Meta Ads",   icon: "📘", color: "#1877F2" },
   { id: "google",    label: "Google Ads", icon: "🔵", color: "#4285F4" },
   { id: "instagram", label: "Instagram",  icon: "📸", color: "#E1306C" },
-  { id: "tiktok",    label: "TikTok Ads", icon: "🎵", color: "#010101" },
+  { id: "tiktok",    label: "TikTok Ads", icon: "🎵", color: "#ee1d52" },
 ];
 
 // ─── Blended cross-platform banner ───────────────────────────────────────────
-function BlendedBanner({ metaConnected, googleConnected }: { metaConnected: boolean; googleConnected: boolean }) {
+function BlendedBanner({ metaConnected, googleConnected, tiktokConnected }: {
+  metaConnected: boolean; googleConnected: boolean; tiktokConnected: boolean;
+}) {
   const [metaData,   setMetaData]   = useState<any>(null);
   const [googleData, setGoogleData] = useState<any>(null);
+  const [tiktokData, setTiktokData] = useState<any>(null);
 
   useEffect(() => {
     if (metaConnected) {
@@ -32,21 +36,31 @@ function BlendedBanner({ metaConnected, googleConnected }: { metaConnected: bool
         .then((d) => { if (!d.error) setGoogleData(d.account); })
         .catch(() => {});
     }
-  }, [metaConnected, googleConnected]);
+    if (tiktokConnected) {
+      fetch("/api/tiktok/stats?days=30")
+        .then((r) => r.json())
+        .then((d) => { if (!d.error) setTiktokData(d.account); })
+        .catch(() => {});
+    }
+  }, [metaConnected, googleConnected, tiktokConnected]);
 
-  if (!metaConnected && !googleConnected) return null;
+  if (!metaConnected && !googleConnected && !tiktokConnected) return null;
 
-  const metaSpend   = metaData?.spend   ?? 0;
-  const googleSpend = googleData?.spend ?? 0;
-  const totalSpend  = metaSpend + googleSpend;
-  const metaRoas    = metaData?.roas    ?? 0;
-  const googleRoas  = googleData?.roas  ?? 0;
+  const metaSpend   = metaData?.spend    ?? 0;
+  const googleSpend = googleData?.spend  ?? 0;
+  const tiktokSpend = tiktokData?.spend  ?? 0;
+  const totalSpend  = metaSpend + googleSpend + tiktokSpend;
+
+  const metaRoas    = metaData?.roas     ?? 0;
+  const googleRoas  = googleData?.roas   ?? 0;
+  const tiktokRoas  = tiktokData?.roas   ?? 0;
   const blendedRoas = totalSpend > 0
-    ? (metaSpend * metaRoas + googleSpend * googleRoas) / totalSpend
+    ? (metaSpend * metaRoas + googleSpend * googleRoas + tiktokSpend * tiktokRoas) / totalSpend
     : 0;
 
   const metaPct   = totalSpend > 0 ? (metaSpend   / totalSpend) * 100 : 0;
   const googlePct = totalSpend > 0 ? (googleSpend / totalSpend) * 100 : 0;
+  const tiktokPct = totalSpend > 0 ? (tiktokSpend / totalSpend) * 100 : 0;
 
   return (
     <div className="rounded-xl p-5 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
@@ -75,13 +89,10 @@ function BlendedBanner({ metaConnected, googleConnected }: { metaConnected: bool
           {/* Spend split bar */}
           {totalSpend > 0 && (
             <div className="mt-4">
-              <div className="flex rounded-full overflow-hidden h-1.5" style={{ width: 240, background: "var(--bg-subtle)" }}>
-                {metaConnected && metaSpend > 0 && (
-                  <div style={{ width: `${metaPct}%`, background: "#1877F2" }} />
-                )}
-                {googleConnected && googleSpend > 0 && (
-                  <div style={{ width: `${googlePct}%`, background: "#4285F4" }} />
-                )}
+              <div className="flex rounded-full overflow-hidden h-1.5" style={{ width: 280, background: "var(--bg-subtle)" }}>
+                {metaConnected && metaSpend > 0 && <div style={{ width: `${metaPct}%`, background: "#1877F2" }} />}
+                {googleConnected && googleSpend > 0 && <div style={{ width: `${googlePct}%`, background: "#4285F4" }} />}
+                {tiktokConnected && tiktokSpend > 0 && <div style={{ width: `${tiktokPct}%`, background: "#ee1d52" }} />}
               </div>
               <div className="flex items-center gap-4 mt-1.5">
                 {metaConnected && (
@@ -94,6 +105,12 @@ function BlendedBanner({ metaConnected, googleConnected }: { metaConnected: bool
                   <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full" style={{ background: "#4285F4" }} />
                     <span className="text-xs" style={{ color: "var(--text-faint)" }}>Google {googlePct.toFixed(0)}%</span>
+                  </div>
+                )}
+                {tiktokConnected && (
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full" style={{ background: "#ee1d52" }} />
+                    <span className="text-xs" style={{ color: "var(--text-faint)" }}>TikTok {tiktokPct.toFixed(0)}%</span>
                   </div>
                 )}
               </div>
@@ -128,6 +145,20 @@ function BlendedBanner({ metaConnected, googleConnected }: { metaConnected: bool
               </p>
               <p className="text-xs mt-0.5" style={{ color: googleRoas >= 1 ? "#10b981" : googleRoas > 0 ? "#ef4444" : "var(--text-faint)" }}>
                 {googleRoas > 0 ? `${googleRoas.toFixed(2)}× ROAS` : googleData ? "No conversions" : "Loading…"}
+              </p>
+            </div>
+          )}
+          {tiktokConnected && (
+            <div className="text-right">
+              <div className="flex items-center gap-1.5 justify-end mb-2">
+                <div className="w-2 h-2 rounded-full" style={{ background: "#ee1d52" }} />
+                <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>TikTok Ads</span>
+              </div>
+              <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
+                ${tiktokSpend.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: tiktokRoas >= 1 ? "#10b981" : tiktokRoas > 0 ? "#ef4444" : "var(--text-faint)" }}>
+                {tiktokRoas > 0 ? `${tiktokRoas.toFixed(2)}× ROAS` : tiktokData ? "No conversions" : "Loading…"}
               </p>
             </div>
           )}
@@ -202,14 +233,18 @@ function InstagramView({ metaConnected }: { metaConnected: boolean }) {
 }
 
 // ─── Main dashboard ───────────────────────────────────────────────────────────
-export default function TrafficDashboard({ metaConnected, metaTokenError, googleConnected }: Props) {
+export default function TrafficDashboard({ metaConnected, metaTokenError, googleConnected, tiktokConnected }: Props) {
   const [tab, setTab] = useState<string>("meta");
 
   return (
     <>
       {/* Blended banner — shown when at least one platform is connected */}
-      {(metaConnected || googleConnected) && (
-        <BlendedBanner metaConnected={metaConnected && !metaTokenError} googleConnected={googleConnected} />
+      {(metaConnected || googleConnected || tiktokConnected) && (
+        <BlendedBanner
+          metaConnected={metaConnected && !metaTokenError}
+          googleConnected={googleConnected}
+          tiktokConnected={tiktokConnected}
+        />
       )}
 
       {/* Tab bar */}
@@ -220,6 +255,7 @@ export default function TrafficDashboard({ metaConnected, metaTokenError, google
             t.id === "meta"      ? metaConnected && !metaTokenError :
             t.id === "google"    ? googleConnected :
             t.id === "instagram" ? metaConnected && !metaTokenError :
+            t.id === "tiktok"    ? tiktokConnected :
             false;
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
@@ -246,7 +282,7 @@ export default function TrafficDashboard({ metaConnected, metaTokenError, google
       {tab === "meta"      && !metaTokenError && <MetaAdsView connected={metaConnected} />}
       {tab === "google"    && <GoogleAdsView connected={googleConnected} />}
       {tab === "instagram" && <InstagramView metaConnected={metaConnected && !metaTokenError} />}
-      {tab === "tiktok"    && <ConnectCard platform="tiktok" />}
+      {tab === "tiktok"    && <TikTokAdsView connected={tiktokConnected} />}
     </>
   );
 }

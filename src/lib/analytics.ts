@@ -127,6 +127,90 @@ export async function getTopProducts(limit = 10, storeId?: string) {
   return data ?? [];
 }
 
+// ─── Top Products by Revenue ─────────────────────────────────────────────────
+export async function getTopProductsByRevenue(days = 30, storeId?: string, limit = 10) {
+  const supabase = getServiceClient();
+  const since = new Date();
+  since.setDate(since.getDate() - days);
+
+  // Step 1: order external IDs in the period
+  let ordersQ = supabase
+    .from("orders")
+    .select("external_id")
+    .gte("created_at", since.toISOString())
+    .not("financial_status", "in", "(refunded,voided)");
+  if (storeId) ordersQ = ordersQ.eq("store_id", storeId);
+  const { data: recentOrders } = await ordersQ;
+  const orderExternalIds = (recentOrders ?? []).map((o) => o.external_id);
+  if (orderExternalIds.length === 0) return [];
+
+  // Step 2: line items for those orders
+  let liQ = supabase
+    .from("order_line_items")
+    .select("product_id, product_title, price, quantity, total_price")
+    .in("order_external_id", orderExternalIds);
+  if (storeId) liQ = liQ.eq("store_id", storeId);
+  const { data: items } = await liQ;
+  if (!items?.length) return [];
+
+  // Step 3: aggregate by product
+  const byProduct: Record<string, { title: string; revenue: number; units: number }> = {};
+  for (const item of items) {
+    const key = item.product_id ?? item.product_title ?? "unknown";
+    if (!byProduct[key]) byProduct[key] = { title: item.product_title ?? "Unknown", revenue: 0, units: 0 };
+    byProduct[key].revenue += item.total_price ?? (item.price * item.quantity);
+    byProduct[key].units   += item.quantity ?? 1;
+  }
+
+  const totalRevenue = Object.values(byProduct).reduce((s, v) => s + v.revenue, 0);
+
+  return Object.entries(byProduct)
+    .map(([productId, v]) => ({
+      productId,
+      title:   v.title,
+      revenue: v.revenue,
+      units:   v.units,
+      revPct:  totalRevenue > 0 ? (v.revenue / totalRevenue) * 100 : 0,
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, limit);
+}
+
+// ─── Repeat Purchase Rate ─────────────────────────────────────────────────────
+export async function getRepeatRate(storeId?: string): Promise<number> {
+  const supabase = getServiceClient();
+  let q = supabase
+    .from("customers")
+    .select("orders_count", { count: "exact" });
+  if (storeId) q = q.eq("store_id", storeId);
+  const { data, count } = await q;
+  if (!data || !count || count === 0) return 0;
+  const repeats = data.filter((c) => (c.orders_count ?? 0) > 1).length;
+  return (repeats / count) * 100;
+}
+
+// ─── Store Adjustments ────────────────────────────────────────────────────────
+export type StoreAdjustment = {
+  id: string;
+  store_id: string;
+  logged_at: string;
+  category: string;
+  title: string;
+  description: string | null;
+  metric_snapshot: Record<string, number>;
+};
+
+export async function getStoreAdjustments(storeId: string, limit = 50): Promise<StoreAdjustment[]> {
+  const supabase = getServiceClient();
+  const { data } = await supabase
+    .from("store_adjustments")
+    .select("*")
+    .eq("store_id", storeId)
+    .order("logged_at", { ascending: false })
+    .limit(limit);
+  return (data ?? []) as StoreAdjustment[];
+}
+
 // ─── Low Stock Products ───────────────────────────────────────────────────────
 export async function getLowStockProducts(threshold = 5, storeId?: string) {
   const supabase = getServiceClient();

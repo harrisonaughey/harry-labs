@@ -36,6 +36,8 @@ yarn-error.log*
 # sensitive / private files
 private-api-key.txt
 Klaviyo.recovery-codes.txt
+harrylabs.env.local
+*.env.local
 
 # claude code local settings (may contain keys)
 .claude/settings.json

@@ -1,23 +1,27 @@
 import PageLayout from "@/components/shared/PageLayout";
 import PLView from "@/components/pl/PLView";
 import { getStores } from "@/lib/stores";
-import { getMerStats } from "@/lib/analytics";
+import { isMetaConnected } from "@/lib/meta";
+import { isGoogleConnected } from "@/lib/googleAds";
+import { isTikTokConnected } from "@/lib/tiktok";
 
-export const revalidate = 300;
+export const revalidate = 0;
 
 export default async function PLPage() {
   const stores = await getStores();
-  const storeId = stores[0]?.id;
-  const stats = await getMerStats(30, storeId);
 
   return (
     <PageLayout
       stores={stores}
       activePage="P&L"
       title="Profit & Loss"
-      subtitle="Revenue from Shopify · configure expenses · see net profit"
+      subtitle="Revenue from Shopify · ad spend auto-pulled from connected platforms"
     >
-      <PLView shopifyRevenue={stats.revenue} shopifyOrders={stats.orderCount} />
+      <PLView
+        metaConnected={isMetaConnected()}
+        googleConnected={isGoogleConnected()}
+        tiktokConnected={isTikTokConnected()}
+      />
     </PageLayout>
   );
 }

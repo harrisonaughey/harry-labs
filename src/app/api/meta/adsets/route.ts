@@ -4,6 +4,8 @@ const META_BASE = "https://graph.facebook.com/v19.0";
 
 export async function GET(req: NextRequest) {
   const campaignId = req.nextUrl.searchParams.get("campaignId");
+  const since      = req.nextUrl.searchParams.get("since");
+  const until      = req.nextUrl.searchParams.get("until");
   const preset     = req.nextUrl.searchParams.get("preset") ?? "last_30d";
   const token      = process.env.META_ACCESS_TOKEN ?? "";
 
@@ -11,12 +13,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
   }
 
+  const insightDateParam = since && until
+    ? `insights.time_range(${JSON.stringify({ since, until })})`
+    : `insights.date_preset(${preset})`;
+
   const fields = [
     "name",
     "status",
     "daily_budget",
     "lifetime_budget",
-    `insights.date_preset(${preset}){spend,impressions,clicks,ctr,cpc,reach,actions,action_values}`,
+    "bid_amount",
+    "optimization_goal",
+    `${insightDateParam}{spend,impressions,clicks,ctr,cpc,reach,frequency,actions,action_values}`,
   ].join(",");
 
   const qs  = new URLSearchParams({ fields, limit: "50", access_token: token });
@@ -28,25 +36,28 @@ export async function GET(req: NextRequest) {
   }
 
   const adsets = (data.data ?? []).map((as: any) => {
-    const ins          = as.insights?.data?.[0] ?? {};
-    const purchases    = ins.actions?.find((a: any) => a.action_type === "purchase")?.value ?? "0";
+    const ins           = as.insights?.data?.[0] ?? {};
+    const purchases     = ins.actions?.find((a: any) => a.action_type === "purchase")?.value ?? "0";
     const purchaseValue = ins.action_values?.find((a: any) => a.action_type === "purchase")?.value ?? "0";
-    const spend        = parseFloat(ins.spend ?? "0");
+    const spend         = parseFloat(ins.spend ?? "0");
     return {
-      id:            as.id,
-      name:          as.name,
-      status:        as.status,
-      dailyBudget:   as.daily_budget    ? parseInt(as.daily_budget)    / 100 : null,
+      id:             as.id,
+      name:           as.name,
+      status:         as.status,
+      dailyBudget:    as.daily_budget    ? parseInt(as.daily_budget)    / 100 : null,
       lifetimeBudget: as.lifetime_budget ? parseInt(as.lifetime_budget) / 100 : null,
+      bidAmount:      as.bid_amount      ? parseInt(as.bid_amount)      / 100 : null,
+      optimizationGoal: as.optimization_goal ?? null,
       spend,
-      impressions:   parseInt(ins.impressions ?? "0"),
-      reach:         parseInt(ins.reach       ?? "0"),
-      clicks:        parseInt(ins.clicks      ?? "0"),
-      ctr:           parseFloat(ins.ctr       ?? "0"),
-      cpc:           parseFloat(ins.cpc       ?? "0"),
-      purchases:     parseInt(purchases),
-      purchaseValue: parseFloat(purchaseValue),
-      roas:          spend > 0 ? parseFloat(purchaseValue) / spend : 0,
+      impressions:    parseInt(ins.impressions ?? "0"),
+      reach:          parseInt(ins.reach       ?? "0"),
+      clicks:         parseInt(ins.clicks      ?? "0"),
+      ctr:            parseFloat(ins.ctr       ?? "0"),
+      cpc:            parseFloat(ins.cpc       ?? "0"),
+      frequency:      parseFloat(ins.frequency ?? "0"),
+      purchases:      parseInt(purchases),
+      purchaseValue:  parseFloat(purchaseValue),
+      roas:           spend > 0 ? parseFloat(purchaseValue) / spend : 0,
     };
   });
 

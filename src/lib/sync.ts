@@ -36,7 +36,7 @@ async function shopifyFetchAll(shop: string, token: string, endpoint: string): P
 }
 
 // ─── Main sync function ───────────────────────────────────────────────────────
-export async function syncStore(storeId: string) {
+export async function syncStore(storeId: string, forceFullSync = false) {
   const { data: store, error: storeErr } = await supabase
     .from("stores")
     .select("id, shop_domain, access_token, last_synced_at")
@@ -45,8 +45,8 @@ export async function syncStore(storeId: string) {
 
   if (storeErr || !store) throw new Error(`Store not found: ${storeErr?.message}`);
 
-  // Incremental: only fetch records updated since last sync
-  const since = store.last_synced_at
+  // forceFullSync bypasses last_synced_at so a full re-pull is guaranteed
+  const since = (!forceFullSync && store.last_synced_at)
     ? new Date(store.last_synced_at).toISOString()
     : null;
 
@@ -97,6 +97,72 @@ export async function syncStore(storeId: string) {
       `products.json?limit=250${sinceParam}`
     );
     if (products.length) {
+      // ── Change detection: compare incoming vs current DB state ───────────
+      try {
+        const { data: existingProds } = await supabase
+          .from("products")
+          .select("external_id, price, title, status, updated_at")
+          .eq("store_id", store.id);
+
+        if (existingProds && existingProds.length > 0) {
+          const em: Record<string, typeof existingProds[0]> = {};
+          existingProds.forEach((p) => { em[p.external_id] = p; });
+          const adjRows: any[] = [];
+
+          for (const p of products) {
+            const extId = String(p.id);
+            const price = parseFloat(p.variants?.[0]?.price || "0");
+            const prev  = em[extId];
+
+            if (!prev) {
+              adjRows.push({
+                store_id: store.id, category: "product",
+                title: `New product added: ${p.title}`,
+                description: `Listed at $${price.toFixed(2)}${p.status !== "active" ? ` — ${p.status}` : ""}`,
+                metric_snapshot: { source: "auto", field: "new_product", price, status: p.status, product_id: extId },
+              });
+            } else {
+              if (Math.abs((Number(prev.price) || 0) - price) > 0.01) {
+                adjRows.push({
+                  store_id: store.id, category: "price",
+                  title: `Price updated: ${p.title}`,
+                  description: `$${Number(prev.price).toFixed(2)} → $${price.toFixed(2)}`,
+                  metric_snapshot: { source: "auto", field: "price", before: Number(prev.price), after: price, product_id: extId },
+                });
+              }
+              if (prev.status !== p.status) {
+                adjRows.push({
+                  store_id: store.id, category: "product",
+                  title: `Product ${p.status === "active" ? "published" : p.status === "archived" ? "archived" : "unpublished"}: ${p.title}`,
+                  description: `${prev.status} → ${p.status}`,
+                  metric_snapshot: { source: "auto", field: "status", before: prev.status, after: p.status, product_id: extId },
+                });
+              }
+              // Detect image/description changes on incremental sync via updated_at drift
+              if (!forceFullSync && prev.updated_at && p.updated_at &&
+                  new Date(p.updated_at) > new Date(prev.updated_at) &&
+                  Math.abs((Number(prev.price) || 0) - price) <= 0.01 &&
+                  prev.status === p.status && prev.title === p.title) {
+                adjRows.push({
+                  store_id: store.id, category: "product",
+                  title: `Product page updated: ${p.title}`,
+                  description: "Images, description or variant details modified",
+                  metric_snapshot: { source: "auto", field: "content", product_id: extId, updated_at: p.updated_at },
+                });
+              }
+            }
+          }
+
+          if (adjRows.length) {
+            const { error: adjErr } = await supabase
+              .from("store_adjustments")
+              .insert(adjRows.slice(0, 30));
+            if (adjErr) errors.push(`change_log: ${adjErr.message}`);
+            else results.changes = adjRows.length;
+          }
+        }
+      } catch (e: any) { errors.push(`change_detection: ${e.message}`); }
+
       const rows = products.map((p: any) => ({
         store_id: store.id,
         external_id: String(p.id),
@@ -168,6 +234,32 @@ export async function syncStore(storeId: string) {
       if (error) errors.push(`orders: ${error.message}`);
       else results.orders = orderRows.length;
 
+      // ── Order line items ─────────────────────────────────────────────────
+      const lineItemRows: any[] = [];
+      orders.forEach((o: any) => {
+        (o.line_items ?? []).forEach((item: any) => {
+          lineItemRows.push({
+            store_id:          store.id,
+            external_id:       String(item.id),
+            order_external_id: String(o.id),
+            product_id:        item.product_id ? String(item.product_id) : null,
+            product_title:     item.title ?? item.name ?? null,
+            variant_title:     item.variant_title ?? null,
+            sku:               item.sku ?? null,
+            price:             parseFloat(item.price || "0"),
+            quantity:          item.quantity ?? 1,
+            total_price:       parseFloat(item.price || "0") * (item.quantity ?? 1),
+          });
+        });
+      });
+      if (lineItemRows.length) {
+        const { error: liErr } = await supabase
+          .from("order_line_items")
+          .upsert(lineItemRows, { onConflict: "store_id,external_id" });
+        if (liErr) errors.push(`line_items: ${liErr.message}`);
+        else results.line_items = lineItemRows.length;
+      }
+
       // ── Revenue snapshots (only rebuild days touched in this sync) ────────
       const snapMap: Record<string, { revenue: number; count: number }> = {};
       orders.forEach((o: any) => {
@@ -192,6 +284,72 @@ export async function syncStore(storeId: string) {
       results.orders = 0;
     }
   } catch (e: any) { errors.push(`orders: ${e.message}`); }
+
+  // ── Website / theme change detection ─────────────────────────────────────
+  try {
+    const themes = await shopifyFetchAll(
+      store.shop_domain, store.access_token, "themes.json"
+    );
+    const activeTheme = (themes as any[]).find((t) => t.role === "main");
+    if (activeTheme) {
+      const { data: recentStoreAdj } = await supabase
+        .from("store_adjustments")
+        .select("metric_snapshot, logged_at")
+        .eq("store_id", store.id)
+        .eq("category", "store")
+        .order("logged_at", { ascending: false })
+        .limit(20);
+
+      const lastThemeEntry = (recentStoreAdj ?? []).find(
+        (e) => (e.metric_snapshot as any)?.field === "theme"
+      );
+      const lastThemeId      = (lastThemeEntry?.metric_snapshot as any)?.theme_id;
+      const lastThemeUpdated = (lastThemeEntry?.metric_snapshot as any)?.updated_at;
+
+      if (!lastThemeId) {
+        // First snapshot — record silently, no noise
+        await supabase.from("store_adjustments").insert({
+          store_id: store.id, category: "store",
+          title: `Active theme recorded: ${activeTheme.name}`,
+          description: "Initial website snapshot",
+          metric_snapshot: { source: "auto", field: "theme", theme_id: String(activeTheme.id), theme_name: activeTheme.name, updated_at: activeTheme.updated_at },
+        });
+      } else if (lastThemeId !== String(activeTheme.id)) {
+        const prevName = (lastThemeEntry?.metric_snapshot as any)?.theme_name ?? "Previous theme";
+        await supabase.from("store_adjustments").insert({
+          store_id: store.id, category: "store",
+          title: `Theme switched: ${prevName} → ${activeTheme.name}`,
+          description: "Active storefront theme changed in Shopify admin",
+          metric_snapshot: { source: "auto", field: "theme", theme_id: String(activeTheme.id), theme_name: activeTheme.name, updated_at: activeTheme.updated_at },
+        });
+      } else if (lastThemeUpdated && lastThemeUpdated !== activeTheme.updated_at) {
+        await supabase.from("store_adjustments").insert({
+          store_id: store.id, category: "store",
+          title: `Website updated: ${activeTheme.name}`,
+          description: "Theme settings, banners or content were modified in Shopify",
+          metric_snapshot: { source: "auto", field: "theme", theme_id: String(activeTheme.id), theme_name: activeTheme.name, updated_at: activeTheme.updated_at, prev_updated_at: lastThemeUpdated },
+        });
+      }
+    }
+  } catch { /* theme tracking is optional — never block the sync */ }
+
+  // ── Page updates (incremental only) ──────────────────────────────────────
+  if (!forceFullSync && sinceParam) {
+    try {
+      const pages = await shopifyFetchAll(
+        store.shop_domain, store.access_token,
+        `pages.json?limit=50${sinceParam}`
+      );
+      for (const pg of (pages as any[]).slice(0, 10)) {
+        await supabase.from("store_adjustments").insert({
+          store_id: store.id, category: "store",
+          title: `Page updated: ${pg.title}`,
+          description: "Content page was modified in Shopify",
+          metric_snapshot: { source: "auto", field: "page", page_id: String(pg.id), page_handle: pg.handle, updated_at: pg.updated_at },
+        });
+      }
+    } catch { /* page tracking is optional */ }
+  }
 
   // ── Finalise ───────────────────────────────────────────────────────────────
   const total = Object.values(results).reduce((s, n) => s + n, 0);

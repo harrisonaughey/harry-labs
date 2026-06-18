@@ -82,6 +82,16 @@ export async function getGooglePreviousStats(days: number) {
   };
 }
 
+// ─── Spend for a specific date range (used by P&L) ───────────────────────────
+export async function getGoogleSpendRange(since: string, until: string): Promise<number> {
+  const rows = await gaqlQuery(`
+    SELECT metrics.cost_micros
+    FROM customer
+    WHERE segments.date BETWEEN '${since}' AND '${until}'
+  `);
+  return ((rows[0]?.metrics?.costMicros ?? 0) / 1_000_000);
+}
+
 // ─── Account-level summary ────────────────────────────────────────────────────
 export async function getGoogleAccountStats(days = 30) {
   const rows = await gaqlQuery(`
