@@ -2,10 +2,11 @@
 import { useState, useEffect, useCallback, Fragment } from "react";
 import ConnectCard from "./ConnectCard";
 import SpendChart from "./SpendChart";
+import AgentInsightsPanel from "./AgentInsightsPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type DateMode = "7d" | "30d" | "90d" | "custom";
-type InnerTab = "reporting" | "management";
+type InnerTab = "reporting" | "management" | "agent";
 type Priority = "high" | "medium" | "low";
 type RecType  = "pause" | "budget_increase" | "budget_decrease" | "refresh_creative" | "investigate" | "review_audience";
 
@@ -934,11 +935,11 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
         {/* Inner tab + refresh */}
         <div className="flex items-center gap-2">
           <div className="flex p-0.5 rounded-lg" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-            {(["reporting", "management"] as InnerTab[]).map((t) => (
+            {(["reporting", "management", "agent"] as InnerTab[]).map((t) => (
               <button key={t} onClick={() => setInnerTab(t)}
                 className="text-xs px-3 py-1.5 rounded-md font-medium capitalize"
                 style={{ background: innerTab === t ? "#1e1e30" : "transparent", color: innerTab === t ? "#a5b4fc" : "var(--text-muted)" }}>
-                {t === "reporting" ? "📊 Reporting" : "⚙️ Management"}
+                {t === "reporting" ? "📊 Reporting" : t === "management" ? "⚙️ Management" : "🤖 Agent"}
               </button>
             ))}
           </div>
@@ -1042,6 +1043,9 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
           <ChangeLog />
         </>
       )}
+
+      {/* ══════════════ AGENT TAB ══════════════ */}
+      {innerTab === "agent" && <AgentInsightsPanel />}
     </div>
   );
 }

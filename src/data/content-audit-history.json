@@ -1,0 +1,150 @@
+{
+  "_meta": {
+    "schema_version": "1.0",
+    "brand": "thinkle.com.au",
+    "created": "2026-05-29",
+    "description": "Audit history for the content-audit-agent learning loop. Each entry is one post-live audit. The agent reads this file at the start of every audit to surface patterns specific to this brand.",
+    "fields": {
+      "date": "YYYY-MM-DD — date of post-live audit",
+      "video": "filename or Drive file name",
+      "hook_type": "one of: emotional_tension | curiosity_gap | bold_claim | identity_statement | visual_interrupt | social_proof | urgency_scarcity",
+      "duration_s": "video duration in seconds",
+      "content_style": "one of: ugc | founder | product_demo | problem_solution | listicle | testimonial | trending_audio | other",
+      "pre_live_score": "Stage 1 score if a pre-live audit was run, otherwise null",
+      "platforms": "object with per-platform metrics — only include platforms where data was available",
+      "best_platform": "platform with the strongest performance signal",
+      "key_learning": "1-2 sentence insight specific to this brand — what would future-you want to know?",
+      "add_to_history": "true if this audit produced a meaningful learning signal"
+    }
+  },
+  "audits": [
+    {
+      "date": "2026-06-21",
+      "video": "Brief 4_ The reaction clip.mp4",
+      "brief": "Brief 04 — The Reaction Clip",
+      "editor": "Nick",
+      "hook_type": "visual_interrupt",
+      "hook_note": "High motion opening with genuine group reaction energy, but text hook absent at 0s — critical brief miss. Text doesn't appear until ~3s.",
+      "duration_s": 18.1,
+      "content_style": "ugc",
+      "content_detail": "Multi-group reaction clip — 2+ different households filmed, chaos/laughter energy throughout, Thinkle box visible from ~4.5s",
+      "pre_live_score": 63,
+      "audit_mode": "pre_live",
+      "brief_compliance": {
+        "text_hook_at_0s": false,
+        "tight_face_open": false,
+        "reaction_text_no_context": false,
+        "pullback_3_to_8s": "partial",
+        "product_visible": true,
+        "cta_on_gameplay_footage": "partial",
+        "hard_cut_ending": false,
+        "duration_within_range": true,
+        "authentic_tone": true
+      },
+      "penalty_flags": [
+        { "timestamp": "0:00", "flag": "No text overlay in first 1.5s", "deduction": -3 },
+        { "timestamp": "0:00–3s", "flag": "No pattern interrupt text hook in opening window", "deduction": -2 },
+        { "timestamp": "~3s", "flag": "Orange colour grade overlay transition reads as produced effect", "deduction": -2 },
+        { "timestamp": "~13–18s", "flag": "Soft static end card — wide calm room shot violates brief's no-end-card rule", "deduction": -3 },
+        { "timestamp": "~13.6s", "flag": "Top-down product shot with no people — retention sag at 75%", "deduction": -2 }
+      ],
+      "category_scores": {
+        "hook_strength": { "raw": 6.5, "weight": 0.25, "pts": 16.25 },
+        "retention_structure": { "raw": 7.5, "weight": 0.20, "pts": 15.0 },
+        "commercial_intent": { "raw": 7.0, "weight": 0.15, "pts": 10.5 },
+        "native_platform_feel": { "raw": 7.5, "weight": 0.15, "pts": 11.25 },
+        "emotional_triggering": { "raw": 8.0, "weight": 0.10, "pts": 8.0 },
+        "visual_quality": { "raw": 7.5, "weight": 0.10, "pts": 7.5 },
+        "brand_safety": { "raw": 9.5, "weight": 0.05, "pts": 4.75 }
+      },
+      "raw_score": 73.25,
+      "penalty_total": -12,
+      "final_score": 63,
+      "decision": "AMBER — Revise before publishing",
+      "platforms": {
+        "tiktok": { "fit": "moderate", "predicted_hook_rate": 0.28, "predicted_watch_time_pct": 0.35 },
+        "meta": { "fit": "moderate", "predicted_hook_rate": 0.22, "predicted_ctr": 0.012 },
+        "ig_organic": { "fit": "moderate", "predicted_completion": 0.28 },
+        "youtube_shorts": { "fit": "weak", "predicted_retention": 0.45 }
+      },
+      "top_fixes": [
+        "Add text overlay at 0s (surprising line out of context — e.g. 'I said my mum.')",
+        "Open on a tight face crop, not a wide table",
+        "Replace soft end card with hard cut to black over gameplay CTA"
+      ],
+      "what_worked": [
+        "Genuine unscripted reaction energy — not manufactured",
+        "Multi-group social proof signal — implies community adoption",
+        "Orange box visible and recognisable from ~4.5s without branded intro",
+        "Bold orange/white text treatment is punchy and mobile-readable",
+        "Duration 18.1s is optimal for both target platforms"
+      ],
+      "best_platform": null,
+      "key_learning": "For Thinkle reaction-style UGC, the raw footage quality was strong but the hook text was absent at 0s — this is an edit-level failure, not a concept failure. Brief compliance on the opening 2s is the most leveraged fix for this format. Track this: if post-live hook rate underperforms after revision, the tight-face-open execution (not just text presence) may also need to be enforced as a brief requirement.",
+      "add_to_history": true,
+      "post_live_data_available": false,
+      "notes": "First audit entry for thinkle.com.au. First submission from editor Nick. No historical baseline yet — this entry establishes the first data point for pattern learning."
+    }
+  ,
+    {
+      "date": "2026-06-22",
+      "video": "Thinkle ads (Revised) 2.mp4",
+      "brief": "V5 — Fifth submission, Melissa Morante",
+      "editor": "Melissa Morante",
+      "hook_type": "curiosity_gap",
+      "hook_note": "Hybrid curiosity-gap / emotional tension opener. 'They're shouting between the food!?' text at frame 0 over high-motion dinner table sweep. Strongest hook across all five Melissa submissions.",
+      "duration_s": 29.9,
+      "content_style": "ugc",
+      "content_detail": "Multi-family UGC problem-solution arc. Hook: family chaos/phones. Problem scene: man on phone at dinner. Commercial signal: 'This is a game that got everyone off their phones' overlay at 6.5s. Product reveal: woman on couch with Thinkle box at ~21s. Joy scenes: group celebrations across multiple households. CTA: overhead product shot with Thinkle.com.au.",
+      "pre_live_score": 77.5,
+      "audit_mode": "pre_live",
+      "v4_feedback_resolution": {
+        "rgb_glitch_removed": true,
+        "commercial_text_overlay_added": true,
+        "cta_sentence_fixed": "partial",
+        "cta_sentence_note": "URL now on own line on product shot but 'Get this now on' still reads incomplete at 27s before transition",
+        "ending_fixed": true
+      },
+      "penalty_flags": [
+        { "timestamp": "~0:21", "flag": "Product box not visible until 21s — past 10s guideline", "deduction": -2 },
+        { "timestamp": "~0:27", "flag": "Heineken bottle visible in gameplay scene — brand safety / policy risk", "deduction": 0, "note": "Flagged for editorial removal before Meta upload; no points deducted but blocks Meta publish" }
+      ],
+      "category_scores": {
+        "hook_strength": { "raw": 8.5, "weight": 0.25, "pts": 21.25 },
+        "retention_structure": { "raw": 8.0, "weight": 0.20, "pts": 16.0 },
+        "commercial_intent": { "raw": 7.5, "weight": 0.15, "pts": 11.25 },
+        "native_platform_feel": { "raw": 8.0, "weight": 0.15, "pts": 12.0 },
+        "emotional_triggering": { "raw": 8.0, "weight": 0.10, "pts": 8.0 },
+        "visual_quality": { "raw": 7.5, "weight": 0.10, "pts": 7.5 },
+        "brand_safety": { "raw": 7.0, "weight": 0.05, "pts": 3.5 }
+      },
+      "raw_score": 79.5,
+      "penalty_total": -2,
+      "final_score": 77.5,
+      "decision": "GREEN LIGHT — TikTok immediate; Meta after Heineken bottle removal",
+      "platforms": {
+        "tiktok": { "fit": "strong", "predicted_hook_rate": 0.47, "predicted_watch_time_pct": 0.35 },
+        "meta": { "fit": "strong", "predicted_hook_rate": 0.40, "predicted_ctr": 0.020, "publish_blocker": "Heineken bottle at 0:27 — remove before Meta upload" },
+        "ig_organic": { "fit": "moderate", "predicted_completion": 0.25 },
+        "youtube_shorts": { "fit": "weak", "predicted_retention": 0.56, "note": "Not recommended for YouTube deployment" }
+      },
+      "top_fixes_for_v6": [
+        "Insert brief Thinkle box visual at 8–12s to address product-after-10s penalty",
+        "Consolidate CTA to single line 'Get this now on Thinkle.com.au' at cut to overhead shot",
+        "Remove/blur Heineken bottle at ~27s — required before Meta upload, recommended for all platforms"
+      ],
+      "what_worked": [
+        "Strongest hook of all five Melissa submissions — 'They're shouting between the food!?' at frame 0 with high motion",
+        "V4 RGB glitch fully removed — woman-holding-Thinkle-box scene is now commercially clean",
+        "Commercial signal text overlay at 6.5s ('This is a game that got everyone off their phones') — most impactful V4 fix",
+        "Strong emotional arc: disconnection problem → product → multi-family joy → aspiration → CTA",
+        "Video ends on overhead CTA product shot — no cut away"
+      ],
+      "best_platform": "tiktok",
+      "key_learning": "V5 confirms that iterative feedback on Melissa's content is producing consistent improvement: 41 → 48 → 68 → 62.8 (regression) → 77.5. The regression in V4 (RGB glitch) was immediately reversible. The key learning for this format: a specific, contextual curiosity-gap hook ('They're shouting between the food!?') outperforms broad identity/emotional hooks for Thinkle. The 6.5s commercial signal text overlay is a structural element that should be standard for all future Thinkle UGC ads — it's the bridge that makes silent autoplay viable. Watch for product-visibility-before-10s as a recurring weakness in Melissa's edit style.",
+      "add_to_history": true,
+      "post_live_data_available": false,
+      "notes": "First GREEN LIGHT for Melissa across five submissions. Two publish conditions: (1) TikTok — clear to publish immediately. (2) Meta — requires Heineken bottle removal at ~27s before upload. V6 optional optimisation pass available if Harrison wants to push score to ~80+."
+    }
+  ]
+}
