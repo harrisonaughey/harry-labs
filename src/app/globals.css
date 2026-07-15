@@ -19,6 +19,32 @@
   --text-muted:    #6b7280;
   --text-faint:    #4b5563;
   --text-nav-label:#2d2d42;
+
+  /* Campaign calendar — today cell */
+  --cal-today-bg:     #1e1e30;
+  --cal-today-border: #3730a3;
+  --cal-today-text:   #a5b4fc;
+
+  /* Campaign status pills */
+  --pill-red-bg:      #ef444420;
+  --pill-red-border:  #ef444440;
+  --pill-red-text:    #f87171;
+  --pill-red-dot:     #ef4444;
+
+  --pill-blue-bg:     #6366f120;
+  --pill-blue-border: #6366f140;
+  --pill-blue-text:   #a5b4fc;
+  --pill-blue-dot:    #6366f1;
+
+  --pill-green-bg:    #10b98125;
+  --pill-green-border:#10b98145;
+  --pill-green-text:  #34d399;
+  --pill-green-dot:   #10b981;
+
+  --pill-sent-bg:     #10b98112;
+  --pill-sent-border: #10b98128;
+  --pill-sent-text:   #6ee7b7;
+  --pill-sent-dot:    #6ee7b7;
 }
 
 html.light {
@@ -37,6 +63,32 @@ html.light {
   --text-muted:    #64748b;
   --text-faint:    #94a3b8;
   --text-nav-label:#c8d3e0;
+
+  /* Campaign calendar — today cell (light mode) */
+  --cal-today-bg:     #ede9fe;
+  --cal-today-border: #6366f1;
+  --cal-today-text:   #4f46e5;
+
+  /* Campaign status pills (light mode — opaque, readable) */
+  --pill-red-bg:      #fee2e2;
+  --pill-red-border:  #fca5a5;
+  --pill-red-text:    #dc2626;
+  --pill-red-dot:     #ef4444;
+
+  --pill-blue-bg:     #ede9fe;
+  --pill-blue-border: #c4b5fd;
+  --pill-blue-text:   #4f46e5;
+  --pill-blue-dot:    #6366f1;
+
+  --pill-green-bg:    #d1fae5;
+  --pill-green-border:#6ee7b7;
+  --pill-green-text:  #059669;
+  --pill-green-dot:   #10b981;
+
+  --pill-sent-bg:     #d1fae5;
+  --pill-sent-border: #a7f3d0;
+  --pill-sent-text:   #10b981;
+  --pill-sent-dot:    #10b981;
 }
 
 body {
@@ -45,3 +97,27 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   transition: background 0.2s ease, color 0.2s ease;
 }
+
+/* ── Campaign calendar pills ───────────────────────────────── */
+/* dark mode defaults */
+.cal-pill-red   { background: rgba(239,68,68,0.18);  color: #f87171; border-left: 2px solid #ef4444; }
+.cal-pill-blue  { background: rgba(99,102,241,0.18); color: #a5b4fc; border-left: 2px solid #6366f1; }
+.cal-pill-green { background: rgba(16,185,129,0.22); color: #34d399; border-left: 2px solid #10b981; }
+.cal-pill-sent  { background: rgba(16,185,129,0.10); color: #6ee7b7; border-left: 2px solid #6ee7b7; }
+
+/* light mode overrides — opaque, high-contrast */
+html.light .cal-pill-red   { background: #fee2e2; color: #dc2626; border-left-color: #ef4444; }
+html.light .cal-pill-blue  { background: #ede9fe; color: #4f46e5; border-left-color: #6366f1; }
+html.light .cal-pill-green { background: #d1fae5; color: #059669; border-left-color: #10b981; }
+html.light .cal-pill-sent  { background: #dcfce7; color: #16a34a; border-left-color: #10b981; }
+
+/* ── List-view status badge ────────────────────────────────── */
+.cal-badge-red   { background: rgba(239,68,68,0.18);  color: #f87171; }
+.cal-badge-blue  { background: rgba(99,102,241,0.18); color: #a5b4fc; }
+.cal-badge-green { background: rgba(16,185,129,0.22); color: #34d399; }
+.cal-badge-sent  { background: rgba(16,185,129,0.10); color: #6ee7b7; }
+
+html.light .cal-badge-red   { background: #fee2e2; color: #dc2626; }
+html.light .cal-badge-blue  { background: #ede9fe; color: #4f46e5; }
+html.light .cal-badge-green { background: #d1fae5; color: #059669; }
+html.light .cal-badge-sent  { background: #dcfce7; color: #16a34a; }

@@ -406,7 +406,7 @@ export default function BusinessAnalytics({
               <td className="px-5 py-3" style={{ color: "var(--text-faint)" }}>—</td>
               <td className="px-5 py-3" style={{ color: "var(--text-faint)" }}>—</td>
               <td className="px-5 py-3" style={{ color: "var(--text-faint)" }}>
-                {loading ? "…" : totalSpend > 0 ? `${((revenue / revenue) * 100).toFixed(0)}% of rev` : "—"}
+                {loading ? "…" : "—"}
               </td>
               <td className="px-5 py-3">
                 <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: "#10b98120", color: "#10b981" }}>Connected</span>

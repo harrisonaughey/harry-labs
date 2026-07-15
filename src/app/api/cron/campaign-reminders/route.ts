@@ -30,39 +30,38 @@ export async function GET(req: NextRequest) {
 }
 
 // Also allow manual POST trigger from the dashboard (no auth — internal use only)
-export async function POST() {
-  return runReminders();
+// Optional body: { "targetDate": "2026-07-15" } to force a specific send date
+export async function POST(req: NextRequest) {
+  const body = await req.json().catch(() => ({}));
+  const targetDate = body.targetDate ?? null;
+  return runReminders(targetDate);
 }
 
-async function runReminders() {
+async function runReminders(forcedTargetDate: string | null = null) {
   try {
-    // ── Find campaigns exactly 10 days from today (AEST-aware) ──
-    //
-    // AEST = UTC+10. To find campaigns that send "10 days from today in AEST"
-    // we compute today's AEST date, add 10 days, then query the UTC range
-    // covering that full AEST day (i.e. targetDate 14:00 UTC → targetDate+1 14:00 UTC,
-    // because AEST midnight = 14:00 UTC previous day).
-    //
-    const AEST_OFFSET_MS = 10 * 60 * 60 * 1000; // 10 hours in ms
+    // ── Find campaigns on the target send date (AEST-aware) ──
+    let windowStart: Date;
+    let windowEnd:   Date;
 
-    // "Now" expressed in AEST by shifting UTC timestamp
-    const nowAEST = new Date(Date.now() + AEST_OFFSET_MS);
+    if (forcedTargetDate) {
+      // Manual override: treat the provided date as the send date to query
+      const d = new Date(forcedTargetDate + "T00:00:00+10:00"); // midnight AEST
+      windowStart = new Date(d.getTime() - 60 * 60 * 1000);    // ±1h buffer
+      windowEnd   = new Date(d.getTime() + 25 * 60 * 60 * 1000);
+    } else {
+      // AEST = UTC+10. Find campaigns sending in exactly 10 days from now (AEST).
+      const AEST_OFFSET_MS = 10 * 60 * 60 * 1000;
+      const nowAEST        = new Date(Date.now() + AEST_OFFSET_MS);
+      const targetAEST     = new Date(Date.UTC(
+        nowAEST.getUTCFullYear(),
+        nowAEST.getUTCMonth(),
+        nowAEST.getUTCDate() + 10,
+      ));
+      windowStart = new Date(targetAEST.getTime() - AEST_OFFSET_MS);
+      windowEnd   = new Date(windowStart.getTime() + 24 * 60 * 60 * 1000);
+    }
 
-    // Target AEST date: today AEST + 10 days (use UTC methods on the shifted date)
-    const targetAEST = new Date(Date.UTC(
-      nowAEST.getUTCFullYear(),
-      nowAEST.getUTCMonth(),
-      nowAEST.getUTCDate() + 10,
-    ));
-
-    // Convert AEST date boundaries back to UTC for the query
-    // 00:00 AEST on targetDate = (targetDate - 1 day) 14:00 UTC
-    const windowStart = new Date(targetAEST.getTime() - AEST_OFFSET_MS);
-    const windowEnd   = new Date(windowStart.getTime() + 24 * 60 * 60 * 1000);
-
-    console.log(`[campaign-reminders] Checking for campaigns sending on ${
-      targetAEST.toISOString().slice(0, 10)
-    } AEST (UTC window: ${windowStart.toISOString()} → ${windowEnd.toISOString()})`);
+    console.log(`[campaign-reminders] UTC window: ${windowStart.toISOString()} → ${windowEnd.toISOString()}`);
 
     const { data: entries, error } = await db()
       .from("content_calendar")

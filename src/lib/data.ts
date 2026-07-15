@@ -14,9 +14,11 @@ export async function getKpiStats(days = 30, storeId?: string) {
   const prevSinceStr = prevSince.toISOString();
 
   let currentQ = supabase.from("orders").select("total_price")
-    .gte("created_at", sinceStr).lte("created_at", nowStr);
+    .gte("created_at", sinceStr).lte("created_at", nowStr)
+    .not("financial_status", "in", "(refunded,voided)");
   let previousQ = supabase.from("orders").select("total_price")
-    .gte("created_at", prevSinceStr).lt("created_at", sinceStr);
+    .gte("created_at", prevSinceStr).lt("created_at", sinceStr)
+    .not("financial_status", "in", "(refunded,voided)");
   let customerQ = supabase.from("customers")
     .select("id", { count: "exact", head: true })
     .gte("created_at", sinceStr);
@@ -69,14 +71,14 @@ export async function getRevenueChart(months = 6, storeId?: string) {
 
   const grouped: Record<string, { revenue: number; orders: number }> = {};
   (data ?? []).forEach((row) => {
-    const month = new Date(row.date).toLocaleString("en-AU", { month: "short" });
-    if (!grouped[month]) grouped[month] = { revenue: 0, orders: 0 };
-    grouped[month].revenue += row.revenue;
-    grouped[month].orders += row.orders_count;
+    const key = row.date.substring(0, 7); // YYYY-MM key prevents year-over-year collision
+    if (!grouped[key]) grouped[key] = { revenue: 0, orders: 0 };
+    grouped[key].revenue += row.revenue;
+    grouped[key].orders += row.orders_count;
   });
 
-  return Object.entries(grouped).map(([month, v]) => ({
-    month,
+  return Object.entries(grouped).map(([key, v]) => ({
+    month: new Date(key + "-01").toLocaleString("en-AU", { month: "short" }),
     revenue: Math.round(v.revenue),
     orders: v.orders,
   }));

@@ -31,9 +31,14 @@ async function getOrders(storeId?: string) {
   }));
 }
 
-export default async function OrdersPage() {
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ store?: string }>;
+}) {
+  const { store: storeParam } = await searchParams;
   const stores = await getStores();
-  const storeId = stores[0]?.id;
+  const storeId = storeParam || stores[0]?.id;
   const orders = await getOrders(storeId);
 
   return (
@@ -42,6 +47,7 @@ export default async function OrdersPage() {
       activePage="Orders"
       title="Orders"
       subtitle={`${orders.length} orders · search, filter, export`}
+      currentStoreId={storeId ?? null}
     >
       <OrdersView orders={orders} />
     </PageLayout>

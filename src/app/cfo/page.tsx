@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import PageLayout from "@/components/shared/PageLayout";
 import CFOView, { type MonthData } from "@/components/cfo/CFOView";
 import { getStores } from "@/lib/stores";
-import { getRepeatRate } from "@/lib/analytics";
+import { getRepeatRate, getTopProductsByRevenue } from "@/lib/analytics";
 import { isMetaConnected } from "@/lib/meta";
 import { isGoogleConnected } from "@/lib/googleAds";
 import { isTikTokConnected } from "@/lib/tiktok";
@@ -16,9 +16,14 @@ function getServiceClient() {
   );
 }
 
-export default async function CFOPage() {
+export default async function CFOPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ store?: string }>;
+}) {
+  const { store: storeParam } = await searchParams;
   const stores  = await getStores();
-  const store   = stores[0] ?? null;
+  const store   = (storeParam ? stores.find((s) => s.id === storeParam) : null) ?? stores[0] ?? null;
   const storeId = store?.id;
   const supabase = getServiceClient();
 
@@ -76,7 +81,7 @@ export default async function CFOPage() {
     new30d: (new30Res as any).count ?? 0,
   };
 
-  // ── Inventory value estimate (price × default COGS rate × qty) ──────────────
+  // ── Inventory value estimate ────────────────────────────────────────────────
   let invQ = supabase
     .from("products")
     .select("price, inventory_quantity")
@@ -88,6 +93,12 @@ export default async function CFOPage() {
     return sum + (parseFloat(String(p.price)) * 0.45 * Math.max(0, p.inventory_quantity ?? 0));
   }, 0);
 
+  // ── Top products by revenue (last 30 days) ──────────────────────────────────
+  let topProducts: { title: string; revenue: number; units: number; revPct: number }[] = [];
+  try {
+    topProducts = await getTopProductsByRevenue(30, storeId, 5);
+  } catch {}
+
   const repeatRate = await getRepeatRate(storeId);
 
   return (
@@ -96,6 +107,7 @@ export default async function CFOPage() {
       activePage="CFO Hub"
       title="CFO Financial Hub"
       subtitle="Executive overview · margins · unit economics · working capital · forecasting"
+      currentStoreId={storeId ?? null}
     >
       <CFOView
         storeId={storeId ?? null}
@@ -103,6 +115,7 @@ export default async function CFOPage() {
         customerStats={customerStats}
         repeatRate={repeatRate}
         inventoryValue={inventoryValue}
+        topProducts={topProducts}
         metaConnected={isMetaConnected()}
         googleConnected={isGoogleConnected()}
         tiktokConnected={isTikTokConnected()}

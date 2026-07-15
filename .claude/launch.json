@@ -5,6 +5,7 @@
       "name": "harry-labs",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
+      "cwd": ".",
       "port": 3000
     }
   ],

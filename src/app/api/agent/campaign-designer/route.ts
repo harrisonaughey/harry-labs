@@ -29,6 +29,8 @@ import {
 } from "@/lib/klaviyo-images";
 import { matchDesignRule, buildDesignRulesPrompt, buildBrandStandardsPrompt, type DesignRule } from "@/lib/design-rules";
 
+export const maxDuration = 300; // 5 min — Claude calls can be slow
+
 const LOOK_AHEAD_DAYS = 7; // process entries scheduled in the next N days
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -72,7 +74,7 @@ function parsePreviewText(raw: string): string {
 
 // ─── Core agent logic ─────────────────────────────────────────────────────────
 
-async function runAgent(storeId?: string) {
+export async function runAgent(storeId?: string) {
   const supabase = db();
   const now = new Date();
   const horizon = new Date(now);
@@ -81,7 +83,7 @@ async function runAgent(storeId?: string) {
   // 1. Fetch upcoming entries that haven't been designed yet (idempotent)
   let query = supabase
     .from("content_calendar")
-    .select("*, products(id,title,brand_color_primary,brand_color_secondary,brand_color_accent,image_url)")
+    .select("*, products(id,title)")
     .is("klaviyo_campaign_id", null)
     .neq("status", "generating") // skip anything already in-flight
     .lte("send_at", horizon.toISOString())
@@ -210,14 +212,12 @@ async function runAgent(storeId?: string) {
 
       if (!html) throw new Error("Claude response contained no HTML block");
 
-      // 6. Create Klaviyo template + campaign (corrected flow — see file header)
-      const listId = entry.list_id ?? process.env.KLAVIYO_DEFAULT_LIST_ID ?? "";
+      // 6. Create Klaviyo template + campaign — no listId, uses all 6 max-reach audiences
       const { campaignId, templateId } = await createCampaign({
         name:        entry.name,
         subject:     subject || entry.name,
         fromEmail:   "hello@thinkle.com.au",
         fromName:    "Thinkle",
-        listId,
         html,
         previewText,
         scheduledAt: entry.send_at ?? undefined,

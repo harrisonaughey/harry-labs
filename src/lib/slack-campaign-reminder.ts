@@ -1,15 +1,17 @@
 /**
  * Slack Campaign Reminder
  *
- * Sends a rich DM to Harrison 10 days before each scheduled email campaign.
+ * Posts a rich message to #email-agent 10 days before each scheduled email campaign.
  * Includes campaign details + Shopify action checklist tailored to the campaign type.
  *
  * Requires env: SLACK_BOT_TOKEN  (xoxb-... from your Slack app)
- * Harrison's Slack user ID is hardcoded — posting to a user ID sends a DM.
+ * The bot must be invited to #email-agent (private channel C0BH6DLMWJH).
  */
 
-const SLACK_API        = "https://slack.com/api/chat.postMessage";
-const HARRISON_USER_ID = "U099LRFB17G";
+import { buildImagePrompt, inferImageParams } from "@/lib/image-prompt-template";
+
+const SLACK_API           = "https://slack.com/api/chat.postMessage";
+const EMAIL_AGENT_CHANNEL = "C0BH6DLMWJH"; // #email-agent (private)
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -289,6 +291,24 @@ function buildMessage(entries: ReminderEntry[]): { blocks: any[]; text: string }
       },
     });
 
+    // ChatGPT image prompt
+    const imgParams = inferImageParams(entry.name);
+    const imgPrompt = buildImagePrompt({ campaignName: entry.name, ...imgParams });
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*🎨 ChatGPT Image Prompt — paste this to generate the campaign creative*\n\`\`\`${imgPrompt}\`\`\``,
+      },
+    });
+    blocks.push({
+      type: "context",
+      elements: [{
+        type: "mrkdwn",
+        text: `📐 *Spec:* 1200×2100px PNG · Upload at full resolution (no resizing) · Drop in Claude chat or upload via harry-labs dashboard`,
+      }],
+    });
+
     // Agent timeline footer
     blocks.push({
       type: "context",
@@ -325,7 +345,7 @@ export async function sendCampaignReminder(entries: ReminderEntry[]): Promise<vo
       "Authorization": `Bearer ${token}`,
     },
     body: JSON.stringify({
-      channel: HARRISON_USER_ID,  // DM — Slack opens IM automatically
+      channel: EMAIL_AGENT_CHANNEL,
       text,
       blocks,
       unfurl_links: false,

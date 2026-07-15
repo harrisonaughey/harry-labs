@@ -32,9 +32,9 @@ export default function IntegrationsPanel({ syncLog }: { syncLog: SyncEntry[] })
     >
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Integrations</h2>
-        <button className="text-xs px-2 py-1 rounded-md" style={{ background: "#1e1e30", color: "#a5b4fc" }}>
+        <a href="/integrations" className="text-xs px-2 py-1 rounded-md" style={{ background: "#1e1e30", color: "#a5b4fc" }}>
           Manage
-        </button>
+        </a>
       </div>
 
       <div className="space-y-3">
@@ -68,12 +68,13 @@ export default function IntegrationsPanel({ syncLog }: { syncLog: SyncEntry[] })
         })}
       </div>
 
-      <button
-        className="w-full mt-5 text-xs py-2 rounded-lg font-medium transition-opacity hover:opacity-80"
+      <a
+        href="/integrations"
+        className="w-full mt-5 text-xs py-2 rounded-lg font-medium transition-opacity hover:opacity-80 block text-center"
         style={{ background: "#1e1e30", color: "#a5b4fc", border: "1px dashed #2a2a3a" }}
       >
         + Add Integration
-      </button>
+      </a>
     </div>
   );
 }

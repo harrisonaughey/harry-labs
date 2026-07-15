@@ -1,26 +1,30 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import type { Store } from "@/lib/stores";
 
 export default function StoreSwitcher({ stores, currentStoreId }: { stores: Store[]; currentStoreId: string | null }) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   function switchStore(storeId: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.set("store", storeId);
-    router.push(`/?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`);
   }
 
   if (stores.length === 0) {
     return (
-      <a
-        href="/api/shopify/install?shop=thinkle-com-au.myshopify.com"
+      <button
+        onClick={() => {
+          const shop = window.prompt("Enter your Shopify store domain (e.g. mystore.myshopify.com):");
+          if (shop) window.location.href = `/api/shopify/install?shop=${encodeURIComponent(shop.trim())}`;
+        }}
         className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all w-full"
         style={{ background: "#1e1e30", color: "#a5b4fc", border: "1px dashed #3730a3" }}
       >
         <span>+</span> Connect Store
-      </a>
+      </button>
     );
   }
 
@@ -44,13 +48,16 @@ export default function StoreSwitcher({ stores, currentStoreId }: { stores: Stor
           <span className="truncate">{store.name || store.shop_domain}</span>
         </button>
       ))}
-      <a
-        href="#"
+      <button
+        onClick={() => {
+          const shop = window.prompt("Enter your Shopify store domain (e.g. mystore.myshopify.com):");
+          if (shop) window.location.href = `/api/shopify/install?shop=${encodeURIComponent(shop.trim())}`;
+        }}
         className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs w-full mt-1"
         style={{ color: "var(--text-faint)" }}
       >
         <span>+</span> Add store
-      </a>
+      </button>
     </div>
   );
 }

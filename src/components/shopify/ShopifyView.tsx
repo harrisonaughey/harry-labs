@@ -112,9 +112,266 @@ function KpiCard({ label, value, sub, color, delta: d, loading }: {
   );
 }
 
+// ─── Action definitions ───────────────────────────────────────────────────────
+
+const ACTION_DEFS = [
+  {
+    id: "update_price",
+    label: "Update Price",
+    category: "price",
+    desc: "Change a variant's sell price and optional compare-at price",
+    fields: [
+      { key: "variant_id",       label: "Variant ID",         placeholder: "e.g. 12345678901234", required: true },
+      { key: "price",            label: "New Price (AUD)",     placeholder: "e.g. 59.00",          required: true },
+      { key: "compare_at_price", label: "Compare-at Price",   placeholder: "e.g. 79.00 (optional)", required: false },
+    ],
+  },
+  {
+    id: "update_product_status",
+    label: "Publish / Archive Product",
+    category: "product",
+    desc: "Set a product to active, draft, or archived",
+    fields: [
+      { key: "product_id", label: "Product ID", placeholder: "e.g. 7890123456789", required: true },
+      { key: "status",     label: "Status",     placeholder: "active | draft | archived", required: true },
+    ],
+  },
+  {
+    id: "update_product_title",
+    label: "Rename Product",
+    category: "product",
+    desc: "Update a product's title and optionally its description HTML",
+    fields: [
+      { key: "product_id", label: "Product ID",    placeholder: "e.g. 7890123456789", required: true },
+      { key: "title",      label: "New Title",      placeholder: "e.g. Blue Relaxed Tee", required: true },
+      { key: "body_html",  label: "Description HTML", placeholder: "<p>Optional…</p>",  required: false },
+    ],
+  },
+  {
+    id: "update_inventory",
+    label: "Set Inventory",
+    category: "inventory",
+    desc: "Set available stock for an inventory item at your primary location",
+    fields: [
+      { key: "inventory_item_id", label: "Inventory Item ID", placeholder: "e.g. 45678901234", required: true },
+      { key: "available",         label: "Units Available",   placeholder: "e.g. 50",           required: true },
+      { key: "location_id",       label: "Location ID",       placeholder: "Leave blank for primary", required: false },
+    ],
+  },
+  {
+    id: "add_product_tags",
+    label: "Add Tags to Product",
+    category: "product",
+    desc: "Append tags to a product (comma-separated, merges with existing)",
+    fields: [
+      { key: "product_id", label: "Product ID", placeholder: "e.g. 7890123456789", required: true },
+      { key: "tags",       label: "Tags",        placeholder: "summer-24, sale, bundle", required: true, isArray: true },
+    ],
+  },
+  {
+    id: "fulfill_order",
+    label: "Fulfill Order",
+    category: "other",
+    desc: "Mark an order as fulfilled and optionally add tracking",
+    fields: [
+      { key: "order_id",         label: "Order ID",        placeholder: "e.g. 5678901234567", required: true },
+      { key: "tracking_number",  label: "Tracking Number", placeholder: "optional",           required: false },
+      { key: "tracking_company", label: "Carrier",         placeholder: "e.g. Australia Post", required: false },
+    ],
+  },
+  {
+    id: "cancel_order",
+    label: "Cancel Order",
+    category: "other",
+    desc: "Cancel an unfulfilled order and notify the customer",
+    fields: [
+      { key: "order_id", label: "Order ID", placeholder: "e.g. 5678901234567", required: true },
+      { key: "reason",   label: "Reason",   placeholder: "customer | fraud | inventory | declined | other", required: false },
+    ],
+  },
+  {
+    id: "refund_order",
+    label: "Issue Refund",
+    category: "other",
+    desc: "Create a manual refund transaction on an order",
+    fields: [
+      { key: "order_id", label: "Order ID",       placeholder: "e.g. 5678901234567", required: true },
+      { key: "amount",   label: "Refund Amount",  placeholder: "e.g. 29.00",         required: true },
+      { key: "note",     label: "Internal Note",  placeholder: "optional",            required: false },
+    ],
+  },
+  {
+    id: "create_discount",
+    label: "Create Discount Code",
+    category: "promo",
+    desc: "Generate a new discount code (percentage, fixed amount, or free shipping)",
+    fields: [
+      { key: "code",        label: "Code",          placeholder: "e.g. SUMMER20",                     required: true },
+      { key: "type",        label: "Type",           placeholder: "percentage | fixed_amount | free_shipping", required: true },
+      { key: "value",       label: "Value",          placeholder: "e.g. 20 for 20% or $20",            required: true },
+      { key: "usage_limit", label: "Usage Limit",    placeholder: "e.g. 100 (leave blank = unlimited)", required: false },
+      { key: "ends_at",     label: "Expiry (ISO)",   placeholder: "e.g. 2026-12-31T00:00:00Z",         required: false },
+    ],
+  },
+] as const;
+
+// ─── Actions panel ────────────────────────────────────────────────────────────
+
+function ActionsPanel({ storeId, onActionComplete }: { storeId: string; onActionComplete: () => void }) {
+  const [actionType,    setActionType]   = useState<string>(ACTION_DEFS[0].id);
+  const [fields,        setFields]       = useState<Record<string, string>>({});
+  const [running,       setRunning]      = useState(false);
+  const [result,        setResult]       = useState<{ ok: boolean; msg: string } | null>(null);
+
+  const def = ACTION_DEFS.find((d) => d.id === actionType)!;
+  const catDef = CATEGORIES.find((c) => c.id === def.category) ?? CATEGORIES[CATEGORIES.length - 1];
+
+  function setField(key: string, val: string) {
+    setFields((prev) => ({ ...prev, [key]: val }));
+    setResult(null);
+  }
+
+  async function runAction() {
+    const missing = def.fields.filter((f) => f.required && !fields[f.key]?.trim());
+    if (missing.length) {
+      setResult({ ok: false, msg: `Required: ${missing.map((f) => f.label).join(", ")}` });
+      return;
+    }
+
+    setRunning(true);
+    setResult(null);
+
+    try {
+      const body: Record<string, any> = { action: actionType, store_id: storeId };
+      for (const f of def.fields) {
+        const val = fields[f.key]?.trim();
+        if (!val) continue;
+        if ("isArray" in f && f.isArray) {
+          body[f.key] = val.split(",").map((s) => s.trim()).filter(Boolean);
+        } else if (f.key === "available" || f.key === "usage_limit") {
+          body[f.key] = Number(val);
+        } else {
+          body[f.key] = val;
+        }
+      }
+
+      const res  = await fetch("/api/shopify/action", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(body),
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        setResult({ ok: true, msg: "Action executed and logged to Change Log ✓" });
+        setFields({});
+        setTimeout(onActionComplete, 1200);
+      } else {
+        setResult({ ok: false, msg: data.error ?? "Unknown error" });
+      }
+    } catch (e: any) {
+      setResult({ ok: false, msg: e.message });
+    }
+    setRunning(false);
+  }
+
+  return (
+    <div>
+      <p className="text-xs mb-5" style={{ color: "var(--text-muted)" }}>
+        Execute actions directly on your Shopify store. Every action is logged to the Change Log automatically.
+      </p>
+
+      <div className="grid grid-cols-3 gap-5">
+        {/* ── Action picker ───────────────────────────────────────────────── */}
+        <div className="rounded-xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+          <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Action</p>
+          </div>
+          <div className="p-2 space-y-0.5">
+            {ACTION_DEFS.map((d) => {
+              const c = CATEGORIES.find((cat) => cat.id === d.category) ?? CATEGORIES[CATEGORIES.length - 1];
+              return (
+                <button key={d.id}
+                  onClick={() => { setActionType(d.id); setFields({}); setResult(null); }}
+                  className="w-full text-left px-3 py-2.5 rounded-lg transition-all"
+                  style={{
+                    background: actionType === d.id ? "#6366f115" : "transparent",
+                    border:     `1px solid ${actionType === d.id ? "#6366f130" : "transparent"}`,
+                  }}>
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: c.color }} />
+                    <span className="text-xs font-medium" style={{ color: actionType === d.id ? "#a5b4fc" : "var(--text-secondary)" }}>
+                      {d.label}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Form ────────────────────────────────────────────────────────── */}
+        <div className="col-span-2 rounded-xl p-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+          <div className="flex items-start gap-3 mb-5">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                  style={{ background: catDef.bg, color: catDef.color }}>
+                  {catDef.label}
+                </span>
+                <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{def.label}</h3>
+              </div>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{def.desc}</p>
+            </div>
+          </div>
+
+          <div className="space-y-3 mb-5">
+            {def.fields.map((f) => (
+              <div key={f.key}>
+                <p className="text-xs mb-1.5 font-medium" style={{ color: "var(--text-muted)" }}>
+                  {f.label}
+                  {f.required && <span style={{ color: "#ef4444" }}> *</span>}
+                </p>
+                <input
+                  value={fields[f.key] ?? ""}
+                  onChange={(e) => setField(f.key, e.target.value)}
+                  placeholder={f.placeholder}
+                  className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                  style={{ background: "var(--bg-subtle)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {result && (
+            <div className="rounded-lg px-4 py-3 mb-4 text-xs"
+              style={{
+                background: result.ok ? "#10b98115" : "#ef444415",
+                border: `1px solid ${result.ok ? "#10b98130" : "#ef444430"}`,
+                color:  result.ok ? "#10b981" : "#ef4444",
+              }}>
+              {result.msg}
+            </div>
+          )}
+
+          <button onClick={runAction} disabled={running}
+            className="text-sm px-5 py-2 rounded-lg font-medium hover:opacity-80 disabled:opacity-50 transition-opacity"
+            style={{ background: "#6366f1", color: "white" }}>
+            {running ? "Running…" : `⚡ Run: ${def.label}`}
+          </button>
+
+          <p className="text-xs mt-3" style={{ color: "var(--text-faint)" }}>
+            Actions are executed immediately on your live Shopify store and cannot be undone from this dashboard.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function ShopifyView({ store, initialLowStock, totalProducts, lastSync, repeatRate }: Props) {
-  const [tab,       setTab]      = useState<"overview" | "products" | "adjustments">("overview");
+  const [tab,       setTab]      = useState<"overview" | "products" | "actions" | "adjustments">("overview");
   const [period,    setPeriod]   = useState<PeriodId>("30d");
   const [syncing,   setSyncing]  = useState(false);
   const [syncMsg,   setSyncMsg]  = useState("");
@@ -132,6 +389,12 @@ export default function ShopifyView({ store, initialLowStock, totalProducts, las
   const [products,     setProducts]     = useState<TopProduct[]>([]);
   const [loadingProds, setLoadingProds] = useState(false);
   const [prodsError,   setProdsError]   = useState(false);
+
+  // Actions
+  const [actionType,    setActionType]   = useState("update_price");
+  const [actionFields,  setActionFields] = useState<Record<string, string>>({});
+  const [actionRunning, setActionRunning] = useState(false);
+  const [actionResult,  setActionResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
   // Adjustments
   const [adjustments,   setAdjustments]  = useState<Adjustment[]>([]);
@@ -300,19 +563,19 @@ export default function ShopifyView({ store, initialLowStock, totalProducts, las
       {/* ── Tab bar + period selector ─────────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex p-0.5 rounded-lg w-fit" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-          {(["overview", "products", "adjustments"] as const).map((t) => (
+          {(["overview", "products", "actions", "adjustments"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className="text-xs px-4 py-1.5 rounded-md font-medium capitalize transition-all"
               style={{
                 background: tab === t ? "#1e1e30" : "transparent",
                 color:      tab === t ? "#a5b4fc" : "var(--text-muted)",
               }}>
-              {t === "adjustments" ? "Adjustment Log" : t.charAt(0).toUpperCase() + t.slice(1)}
+              {t === "adjustments" ? "Change Log" : t === "actions" ? "⚡ Actions" : t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
         </div>
 
-        {tab !== "adjustments" && (
+        {tab !== "adjustments" && tab !== "actions" && (
           <div className="flex gap-1 p-0.5 rounded-lg" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
             {PERIODS.map((p) => (
               <button key={p.id} onClick={() => setPeriod(p.id)}
@@ -522,6 +785,16 @@ export default function ShopifyView({ store, initialLowStock, totalProducts, las
             </table>
           )}
         </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {/* ACTIONS TAB                                                           */}
+      {/* ══════════════════════════════════════════════════════════════════════ */}
+      {tab === "actions" && (
+        <ActionsPanel storeId={store.id} onActionComplete={() => {
+          setTab("adjustments");
+          fetchAdjustments();
+        }} />
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════ */}

@@ -21,6 +21,8 @@ tools:
   - mcp__1d78d4ba-1396-4f66-af88-d3e5dfb6ace1__list_recent_files
   - mcp__1d78d4ba-1396-4f66-af88-d3e5dfb6ace1__get_file_metadata
   - mcp__1d78d4ba-1396-4f66-af88-d3e5dfb6ace1__download_file_content
+  - mcp__665e4768-30d9-4c1d-a652-afb712523057__slack_send_message
+  - mcp__665e4768-30d9-4c1d-a652-afb712523057__slack_search_users
   - Bash
   - Read
   - WebFetch
@@ -758,6 +760,69 @@ YOUTUBE SHORTS
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+---
+
+## Editor Slack Roster
+
+After every completed audit, send the results directly to the editor via Slack DM. Use the roster below to resolve Slack user IDs. If an editor is not listed, call `slack_search_users` with their name or email to find them, then add them to this roster.
+
+| Editor | Email | Slack User ID |
+|--------|-------|---------------|
+| Nick | nicmagallanes20@gmail.com | U0BASJG0UF7 |
+| Jenne | arisecreative1317@gmail.com | not yet in workspace |
+| Melissa | harvestflow25@gmail.com | look up |
+| Patrick | patricklyn.antimano@gmail.com | look up |
+
+If an editor is not in the Slack workspace, skip the DM and note it in your output so Harrison can invite them.
+
+---
+
+## Post-Audit Slack Notification (mandatory — fires after every MODE A audit)
+
+After completing the audit report and returning it to Harrison, always send a Slack DM directly to the editor with a clean, action-oriented version of the findings. This is non-negotiable — every editor receives their audit automatically without Harrison having to request it separately.
+
+### Slack message format
+
+Write the Slack message in a friendly but direct tone — editor-facing, not media-buyer-facing. Focus on:
+- The score and decision up front
+- What they did well (protect the wins)
+- Exact, numbered action steps they need to take — no ambiguity
+- A closing note of encouragement if score is improving
+
+Use Slack markdown: **bold** for scores/decisions, bullet lists for action steps, keep it under 600 words.
+
+```
+Hey [Name]! Your audit results are in for [Brief name / video title] 👇
+
+**[Score]/100 — [DECISION]**
+[One line: trajectory if revision, or first-submission summary]
+
+---
+
+**What's working ✅**
+[2–3 specific things to protect — what landed well]
+
+---
+
+**[If AMBER/RED: Changes needed before publish]**
+[If GREEN LIGHT: Optional improvements to maximise performance]
+
+1. [Timestamp] — [Specific change] — [One line why it matters]
+2. [Timestamp] — [Specific change] — [One line why it matters]
+3. [Timestamp] — [Specific change] — [One line why it matters]
+
+---
+[Closing note — e.g. "You're X points from green light — one tight edit session gets this across." or "This is ready to go live — great work on the revision."]
+```
+
+### Execution steps
+
+1. Identify the editor from the video filename, Drive file owner, or context provided
+2. Look up their Slack user ID in the roster above (or call `slack_search_users` if not listed)
+3. If found: send the DM via `slack_send_message` using their user ID as the channel
+4. If not found in workspace: note it in your output — "Jenne not yet in Slack workspace — DM skipped, invite needed"
+5. Always confirm the message was sent by returning the Slack message link
 
 ---
 

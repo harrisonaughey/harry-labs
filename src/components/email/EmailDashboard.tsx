@@ -3,25 +3,32 @@ import { useState, useMemo } from "react";
 import EmailMetrics from "./EmailMetrics";
 import CampaignCalendar from "./CampaignCalendar";
 import FlowsView from "./FlowsView";
+import type { KlaviyoCampaign } from "./CampaignDetailPanel";
 
 const RANGES = [
-  { label: "3d",       days: 3    },
-  { label: "7d",       days: 7    },
-  { label: "20d",      days: 20   },
-  { label: "30d",      days: 30   },
-  { label: "All time", days: null },
+  { label: "7d",        days: 7    },
+  { label: "30d",       days: 30   },
+  { label: "90d",       days: 90   },
+  { label: "All time",  days: null },
 ];
 
 type List = { id: string; attributes: { name: string } };
 
 type Props = {
-  campaigns:       any[];
-  flows:           any[];
-  lists:           List[];
-  calendarEntries: any[];
+  campaigns:        any[];
+  flows:            any[];
+  lists:            List[];
+  calendarEntries:  any[];
+  klaviyoCampaigns: KlaviyoCampaign[];
 };
 
-export default function EmailDashboard({ campaigns, flows, lists, calendarEntries }: Props) {
+export default function EmailDashboard({
+  campaigns,
+  flows,
+  lists,
+  calendarEntries,
+  klaviyoCampaigns,
+}: Props) {
   const [tab,  setTab]  = useState<"campaigns" | "flows">("campaigns");
   const [days, setDays] = useState<number | null>(30);
 
@@ -35,10 +42,12 @@ export default function EmailDashboard({ campaigns, flows, lists, calendarEntrie
 
   return (
     <>
-      {/* ── Tab bar + date pills ─────────────────────────────────────── */}
+      {/* ── Tab bar + date pills ── */}
       <div className="flex items-center justify-between mb-6">
-        {/* Tabs */}
-        <div className="flex items-center gap-1 p-1 rounded-lg" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+        <div
+          className="flex items-center gap-1 p-1 rounded-lg"
+          style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+        >
           {(["campaigns", "flows"] as const).map((t) => (
             <button
               key={t}
@@ -49,12 +58,11 @@ export default function EmailDashboard({ campaigns, flows, lists, calendarEntrie
                 color:      tab === t ? "#a5b4fc" : "var(--text-muted)",
               }}
             >
-              {t === "campaigns" ? `📧 Campaigns` : `🔁 Flows`}
+              {t === "campaigns" ? "📧 Campaigns" : "🔁 Flows"}
             </button>
           ))}
         </div>
 
-        {/* Date range pills */}
         <div className="flex items-center gap-2">
           <span className="text-xs" style={{ color: "var(--text-faint)" }}>Range:</span>
           {RANGES.map(({ label, days: d }) => (
@@ -79,7 +87,7 @@ export default function EmailDashboard({ campaigns, flows, lists, calendarEntrie
         </div>
       </div>
 
-      {/* ── Content ──────────────────────────────────────────────────── */}
+      {/* ── Content ── */}
       {tab === "campaigns" ? (
         <>
           <EmailMetrics campaigns={filteredCampaigns} />
@@ -89,6 +97,7 @@ export default function EmailDashboard({ campaigns, flows, lists, calendarEntrie
             days={days}
             lists={lists}
             calendarEntries={calendarEntries}
+            klaviyoCampaigns={klaviyoCampaigns}
           />
         </>
       ) : (

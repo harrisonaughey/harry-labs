@@ -23,9 +23,14 @@ async function getCustomers(storeId?: string) {
   return data ?? [];
 }
 
-export default async function CustomersPage() {
+export default async function CustomersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ store?: string }>;
+}) {
+  const { store: storeParam } = await searchParams;
   const stores = await getStores();
-  const storeId = stores[0]?.id;
+  const storeId = storeParam || stores[0]?.id;
 
   const [customers, stats] = await Promise.all([
     getCustomers(storeId),
@@ -38,6 +43,7 @@ export default async function CustomersPage() {
       activePage="Customers"
       title="Customers"
       subtitle="Lifetime value · repeat rate · segments"
+      currentStoreId={storeId ?? null}
     >
       <CustomersView customers={customers} total={stats.total} new30d={stats.new30d} />
     </PageLayout>

@@ -7,6 +7,7 @@ type Props = {
 };
 
 export default function KpiCard({ label, value, change, positive, icon }: Props) {
+  const isPercentChange = /^[+\-]?\d/.test(change) && change.includes("%");
   return (
     <div
       className="rounded-xl p-5"
@@ -26,7 +27,7 @@ export default function KpiCard({ label, value, change, positive, icon }: Props)
           color: positive ? "#10b981" : "#ef4444",
         }}
       >
-        {change} vs last period
+        {isPercentChange ? `${change} vs last period` : change}
       </span>
     </div>
   );

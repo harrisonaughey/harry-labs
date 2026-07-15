@@ -228,21 +228,45 @@ export async function createTemplate(params: {
   return resp.data.id as string;
 }
 
+// ─── Default audiences — maximum reach across all opted-in profiles ───────────
+//
+// Klaviyo deduplicates automatically: each profile receives the email once
+// regardless of how many lists/segments they appear in.
+//
+// Excluded (intentionally): SMS List (XUyVLL), Testing (VwF9BG),
+// Preview List (XPVFrn), BF giveaway (TeHKBR), campaign-specific segments.
+const DEFAULT_AUDIENCE_IDS = [
+  "XhxTa9",  // Email List            — primary opted-in marketing list
+  "WQSWh5",  // purchased all time    — all buyers (incl. those not on email list)
+  "YnjtGB",  // Engaged (90 Days)     — highest-engagement profiles
+  "Ya68zn",  // Abandoned cart (180d) — high purchase intent
+  "VLzpbe",  // Checkout Started, 0 orders (90d) — near-buyers
+  "QNKhuU",  // Adelaide Buyers       — geographic segment
+];
+
+// Drag-and-drop AI Template — SYSTEM_DRAGGABLE so it opens in Klaviyo's
+// visual editor where Harrison can upload/swap the image directly.
+const AI_TEMPLATE_ID = "SPHBi4";  // "AI Template #01"
+
 // ─── Create campaign ──────────────────────────────────────────────────────────
 export async function createCampaign(params: {
   name: string;
   subject: string;
   fromEmail: string;
   fromName: string;
-  listId: string;
-  html?: string;          // If provided, creates a Klaviyo template and links it to the message
+  listId?: string;         // kept for backwards-compat; ignored when audienceIds set
+  audienceIds?: string[];  // override default audiences; falls back to DEFAULT_AUDIENCE_IDS
+  templateId?: string;     // override default AI Template; falls back to AI_TEMPLATE_ID
+  html?: string;           // if provided, creates a new CODE template instead of using AI Template
   previewText?: string;
   scheduledAt?: string;
 }): Promise<{ campaignId: string; templateId?: string }> {
-  // 1. Create standalone Klaviyo template from HTML (if provided)
-  let templateId: string | undefined;
+  // 1. Resolve template — prefer explicit templateId, then html (new CODE template),
+  //    then fall back to the drag-and-drop AI Template #01.
+  let resolvedTemplateId: string | undefined = params.templateId ?? AI_TEMPLATE_ID;
+
   if (params.html) {
-    templateId = await createTemplate({
+    resolvedTemplateId = await createTemplate({
       name: params.name,
       html: params.html,
       text: `${params.subject}\n\nUnsubscribe: {{ unsubscribe_url }}`,
@@ -257,10 +281,14 @@ export async function createCampaign(params: {
   };
   if (params.previewText) content.preview_text = params.previewText;
 
-  // 2. Create the campaign shell with an inline campaign-message.
+  // 2. Resolve audiences — use explicit list, or default maximum-reach set.
+  const audienceIds = params.audienceIds
+    ?? (params.listId ? [params.listId] : DEFAULT_AUDIENCE_IDS);
+
+  // 3. Create the campaign shell with an inline campaign-message.
   //    NOTE: Klaviyo rejects 'template' as an inline relationship on creation
   //    ("not an allowed relation on campaign-messages resource"). Template linking
-  //    is done in a separate PATCH after creation (step 3 below).
+  //    is done in a separate POST after creation (step 4 below).
   const inlineMessage = {
     type: "campaign-message",
     attributes: { channel: "email", label: params.name, content },
@@ -271,7 +299,7 @@ export async function createCampaign(params: {
       type: "campaign",
       attributes: {
         name: params.name,
-        audiences: { included: [params.listId], excluded: [] },
+        audiences: { included: audienceIds, excluded: [] },
         send_options: { use_smart_sending: true },
         tracking_options: { add_tracking_params: true },
         "campaign-messages": { data: [inlineMessage] },
@@ -290,7 +318,7 @@ export async function createCampaign(params: {
   //    to the message — this is the only officially-supported assignment method.
   //    (PATCH /campaign-messages/{id}/ with relationships.template silently fails
   //    and PATCH /campaign-messages/{id}/relationships/template/ is not a real endpoint.)
-  if (templateId) {
+  if (resolvedTemplateId) {
     try {
       const msgResp  = await kGet(`/campaigns/${campaignId}/campaign-messages/`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -302,11 +330,11 @@ export async function createCampaign(params: {
             type: "campaign-message",
             id: messageId,
             relationships: {
-              template: { data: { type: "template", id: templateId } },
+              template: { data: { type: "template", id: resolvedTemplateId } },
             },
           },
         });
-        console.log(`[klaviyo] ✓ Template ${templateId} assigned to message ${messageId}`);
+        console.log(`[klaviyo] ✓ Template ${resolvedTemplateId} assigned to message ${messageId}`);
       } else {
         console.warn(`[klaviyo] Campaign ${campaignId} returned no campaign-messages`);
       }
@@ -316,18 +344,20 @@ export async function createCampaign(params: {
     }
   }
 
-  // 4. Schedule if requested
+  // 4. Schedule if requested — campaign_id goes in the URL, not as a relationship
   if (params.scheduledAt) {
-    await kPost(`/campaign-send-jobs/`, {
-      data: {
-        type: "campaign-send-job",
-        attributes: { scheduled_at: params.scheduledAt },
-        relationships: {
-          campaign: { data: { type: "campaign", id: campaignId } },
+    try {
+      await kPost(`/campaigns/${campaignId}/campaign-send-jobs/`, {
+        data: {
+          type: "campaign-send-job",
+          attributes: { scheduled_at: params.scheduledAt },
         },
-      },
-    });
+      });
+    } catch (schedErr) {
+      // Non-fatal: campaign + template are created; user can schedule manually in Klaviyo
+      console.warn(`[klaviyo] Schedule step failed (campaign ${campaignId}):`, schedErr);
+    }
   }
 
-  return { campaignId, templateId };
+  return { campaignId, templateId: resolvedTemplateId };
 }

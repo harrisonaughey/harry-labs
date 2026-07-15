@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
     ]);
     return NextResponse.json({ connected: true, account, prevAccount, campaigns, daily });
   } catch (e: any) {
+    console.error("[google/stats]", e?.message ?? e);
     return NextResponse.json({ connected: true, error: e.message }, { status: 500 });
   }
 }

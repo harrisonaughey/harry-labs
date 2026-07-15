@@ -37,15 +37,20 @@ async function getFlowData() {
   }
 }
 
-async function getKlaviyoLists() {
+async function getKlaviyoData() {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/klaviyo/campaigns`, {
       cache: "no-store",
     });
-    if (!res.ok) return { lists: [], templates: [] };
-    return res.json();
+    if (!res.ok) return { lists: [], templates: [], klaviyoCampaigns: [] };
+    const data = await res.json();
+    return {
+      lists:            data.lists            ?? [],
+      templates:        data.templates        ?? [],
+      klaviyoCampaigns: data.campaigns        ?? [],
+    };
   } catch {
-    return { lists: [], templates: [] };
+    return { lists: [], templates: [], klaviyoCampaigns: [] };
   }
 }
 
@@ -62,11 +67,11 @@ async function getCalendarEntries() {
 }
 
 export default async function EmailPage() {
-  const [stores, campaigns, flows, { lists, templates }, calendarEntries] = await Promise.all([
+  const [stores, campaigns, flows, { lists, templates, klaviyoCampaigns }, calendarEntries] = await Promise.all([
     getStores(),
     getEmailData(),
     getFlowData(),
-    getKlaviyoLists(),
+    getKlaviyoData(),
     getCalendarEntries(),
   ]);
 
@@ -94,7 +99,13 @@ export default async function EmailPage() {
         </div>
 
         {/* Dashboard — tabs, filters, metrics, calendar/flows */}
-        <EmailDashboard campaigns={campaigns} flows={flows} lists={lists} calendarEntries={calendarEntries} />
+        <EmailDashboard
+          campaigns={campaigns}
+          flows={flows}
+          lists={lists}
+          calendarEntries={calendarEntries}
+          klaviyoCampaigns={klaviyoCampaigns}
+        />
       </main>
     </div>
   );

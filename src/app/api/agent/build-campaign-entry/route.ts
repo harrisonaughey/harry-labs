@@ -237,13 +237,12 @@ export async function POST(req: NextRequest) {
     if (!html) throw new Error("Claude returned no HTML block — check the brief and try again");
 
     // ── 7. Create Klaviyo template + campaign (template is linked in createCampaign) ──
-    const finalListId = listId || process.env.KLAVIYO_DEFAULT_LIST_ID || "";
+    // No listId — defaults to all 6 maximum-reach audiences defined in klaviyo.ts
     const { campaignId, templateId } = await createCampaign({
       name:        name.trim(),
       subject:     subject || name.trim(),
       fromEmail:   "hello@thinkle.com.au",
       fromName:    "Thinkle",
-      listId:      finalListId,
       html,
       previewText,
       scheduledAt: send_at ?? undefined,

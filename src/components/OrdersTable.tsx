@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 type Order = {
   id: string;
@@ -30,7 +31,7 @@ export default function OrdersTable({ orders }: { orders: Order[] }) {
     <div className="rounded-xl" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
       <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
         <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Recent Orders</h2>
-        <button className="text-xs" style={{ color: "#6366f1" }}>View all →</button>
+        <Link href="/orders" className="text-xs" style={{ color: "#6366f1" }}>View all →</Link>
       </div>
 
       {orders.length === 0 ? (

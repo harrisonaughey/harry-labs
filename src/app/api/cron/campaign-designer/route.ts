@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { runAgent } from "@/app/api/agent/campaign-designer/route";
+
+export const maxDuration = 300;
 
 /**
  * Cron trigger for the Campaign Designer agent.
- * Runs daily at 08:00 UTC — calls the agent route which does the real work.
+ * Runs daily at 08:00 UTC — calls runAgent() directly (no HTTP indirection).
  * Schedule configured in vercel.json: "0 8 * * *"
  */
 export async function GET(req: NextRequest) {
@@ -12,15 +15,12 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const agentUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/agent/campaign-designer`;
-    const res = await fetch(agentUrl, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${process.env.CRON_SECRET}` },
-    });
-    const result = await res.json();
+    const result = await runAgent();
     console.log("[cron/campaign-designer]", JSON.stringify(result));
-    return NextResponse.json({ ok: true, ...result });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: true, ran_at: new Date().toISOString(), ...result });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error("[cron/campaign-designer] Error:", msg);
+    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 }

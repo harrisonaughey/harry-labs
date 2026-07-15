@@ -1,49 +1,48 @@
 import { Suspense } from "react";
 import { createClient } from "@supabase/supabase-js";
-import Sidebar from "@/components/Sidebar";
+import PageLayout from "@/components/shared/PageLayout";
 import ProductsView from "@/components/products/ProductsView";
 import SyncButton from "@/components/SyncButton";
 import { getStores } from "@/lib/stores";
 
 export const revalidate = 300;
 
-async function getProducts() {
+async function getProducts(storeId?: string) {
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-  const { data } = await supabase
+  let q = supabase
     .from("products")
     .select("*")
     .order("title", { ascending: true });
+  if (storeId) q = q.eq("store_id", storeId);
+  const { data } = await q;
   return data ?? [];
 }
 
-export default async function ProductsPage() {
-  const [stores, products] = await Promise.all([getStores(), getProducts()]);
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ store?: string }>;
+}) {
+  const { store: storeParam } = await searchParams;
+  const stores = await getStores();
+  const storeId = storeParam || stores[0]?.id;
+  const products = await getProducts(storeId);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden" style={{ background: "var(--bg-app)" }}>
+    <PageLayout
+      stores={stores}
+      activePage="Products"
+      title="Products"
+      subtitle={`${products.length} products synced · margin calculator`}
+      currentStoreId={storeId ?? null}
+      headerRight={<SyncButton />}
+    >
       <Suspense>
-        <Sidebar stores={stores} activePage="Products" />
+        <ProductsView products={products} />
       </Suspense>
-
-      <main className="flex-1 overflow-y-auto px-8 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>Products</h1>
-            <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
-              {products.length} products synced · margin calculator
-            </p>
-          </div>
-          <SyncButton />
-        </div>
-
-        <Suspense>
-          <ProductsView products={products} />
-        </Suspense>
-      </main>
-    </div>
+    </PageLayout>
   );
 }

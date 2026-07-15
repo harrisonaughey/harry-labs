@@ -8,9 +8,14 @@ import { getChannelBreakdown } from "@/lib/analytics";
 
 export const revalidate = 300;
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ store?: string }>;
+}) {
+  const { store: storeParam } = await searchParams;
   const stores  = await getStores();
-  const storeId = stores[0]?.id;
+  const storeId = storeParam || stores[0]?.id;
 
   const channels = await getChannelBreakdown(30, storeId);
 
@@ -20,6 +25,7 @@ export default async function AnalyticsPage() {
       activePage="Business"
       title="Business Analytics"
       subtitle="MER · ROAS · CPA · Gross Profit · Channel attribution"
+      currentStoreId={storeId ?? null}
     >
       <BusinessAnalytics
         metaConnected={isMetaConnected()}

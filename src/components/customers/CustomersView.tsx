@@ -34,10 +34,10 @@ export default function CustomersView({
 
   const repeatRate = total > 0 ? ((customers.filter((c) => (c.orders_count ?? 0) > 1).length / total) * 100).toFixed(0) : "0";
 
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
   const filtered = useMemo(() => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
     return customers.filter((c) => {
       const matchSearch =
         !search ||
@@ -52,7 +52,7 @@ export default function CustomersView({
 
       return matchSearch && matchFilter;
     });
-  }, [customers, search, filter, thirtyDaysAgo]);
+  }, [customers, search, filter]);
 
   return (
     <div>

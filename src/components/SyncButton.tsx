@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SyncButton({ shopDomain }: { shopDomain?: string }) {
+  const router = useRouter();
   const [syncing, setSyncing] = useState(false);
   const [result,  setResult]  = useState<string | null>(null);
 
@@ -29,7 +31,7 @@ export default function SyncButton({ shopDomain }: { shopDomain?: string }) {
       if (data.success) {
         const r = data.results;
         setResult(`✅ ${r.orders ?? 0} orders · ${r.customers ?? 0} customers · ${r.products ?? 0} products`);
-        setTimeout(() => window.location.reload(), 1500);
+        setTimeout(() => router.refresh(), 1500);
       } else {
         setResult(`❌ ${data.error}`);
       }

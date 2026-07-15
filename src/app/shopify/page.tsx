@@ -7,9 +7,14 @@ import { getSyncLog } from "@/lib/data";
 
 export const revalidate = 300;
 
-export default async function ShopifyPage() {
+export default async function ShopifyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ store?: string }>;
+}) {
+  const { store: storeParam } = await searchParams;
   const stores  = await getStores();
-  const store   = stores[0] ?? null;
+  const store   = (storeParam ? stores.find((s) => s.id === storeParam) : null) ?? stores[0] ?? null;
   const storeId = store?.id;
 
   const supabase = createClient(
@@ -35,6 +40,7 @@ export default async function ShopifyPage() {
       activePage="Shopify Store"
       title="Shopify Store"
       subtitle="Store health · top products · inventory · change log"
+      currentStoreId={storeId ?? null}
     >
       <ShopifyView
         store={store}

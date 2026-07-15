@@ -1,9 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import StoreSwitcher from "./StoreSwitcher";
 import { useTheme } from "@/components/ThemeProvider";
+import { createClient } from "@/lib/supabase/browser";
 import type { Store } from "@/lib/stores";
+
+type SidebarUser = {
+  id: string;
+  email: string;
+  full_name: string;
+  role: "admin" | "viewer" | "tester";
+};
 
 type NavItem = {
   label: string;
@@ -68,6 +76,39 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
   const searchParams = useSearchParams();
   const currentStoreId = searchParams.get("store");
   const { theme, toggle } = useTheme();
+  const [user, setUser] = useState<SidebarUser | null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(async ({ data: { user: u } }: { data: { user: { id: string; email?: string; user_metadata?: Record<string, string> } | null } }) => {
+      if (!u) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, role")
+        .eq("id", u.id)
+        .single();
+      setUser({
+        id: u.id,
+        email: u.email ?? "",
+        full_name: profile?.full_name ?? u.user_metadata?.full_name ?? "",
+        role: profile?.role ?? "viewer",
+      });
+    });
+  }, []);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
+
+  const isAdmin = user?.role === "admin";
+  const isTester = user?.role === "tester";
+  const initials = user?.full_name
+    ? user.full_name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)
+    : user?.email?.[0]?.toUpperCase() ?? "?";
 
   // Determine active href from pathname (client-side routing)
   function isActive(href: string) {
@@ -76,7 +117,10 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
   }
 
   function handleNav(href: string) {
-    router.push(href);
+    const params = new URLSearchParams();
+    if (currentStoreId) params.set("store", currentStoreId);
+    const query = params.toString();
+    router.push(query ? `${href}?${query}` : href);
   }
 
   return (
@@ -106,6 +150,14 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
       </div>
 
       <div className="mx-3 mb-3 flex-shrink-0" style={{ height: "1px", background: "var(--border)" }} />
+
+      {/* Demo mode badge */}
+      {isTester && (
+        <div className="mx-3 mb-2 flex-shrink-0 px-2.5 py-1.5 rounded-lg" style={{ background: "#1c1a0e", border: "1px solid #3d3008" }}>
+          <p className="text-xs font-semibold" style={{ color: "#fbbf24" }}>⚠ Demo Mode</p>
+          <p className="text-xs" style={{ color: "#78716c" }}>Showing placeholder data</p>
+        </div>
+      )}
 
       {/* Nav groups */}
       <nav className="flex-1 px-3 overflow-y-auto pb-4 space-y-5">
@@ -145,10 +197,47 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
             </div>
           </div>
         ))}
+
+        {/* Admin group — only shown when role is admin */}
+        {isAdmin && (
+          <div>
+            <p
+              className="text-xs font-semibold uppercase tracking-widest px-2 mb-1.5"
+              style={{ color: "var(--text-nav-label)" }}
+            >
+              Admin
+            </p>
+            <div className="space-y-0.5">
+              {[{ label: "Users", href: "/admin/users", icon: "👤" }].map((item) => {
+                const active = pathname.startsWith(item.href);
+                return (
+                  <button
+                    key={item.href}
+                    onClick={() => router.push(item.href)}
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all text-left group relative"
+                    style={{
+                      background: active ? "var(--bg-subtle)" : "transparent",
+                      color: active ? "#a5b4fc" : "#6b7280",
+                    }}
+                  >
+                    {active && (
+                      <span
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r-full"
+                        style={{ background: "#6366f1" }}
+                      />
+                    )}
+                    <span className="text-sm w-4 text-center flex-shrink-0">{item.icon}</span>
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* Footer: theme toggle + user */}
-      <div className="px-4 py-4 flex-shrink-0 space-y-3" style={{ borderTop: "1px solid var(--border)" }}>
+      {/* Footer: theme + user + logout */}
+      <div className="px-4 py-4 flex-shrink-0 space-y-2.5" style={{ borderTop: "1px solid var(--border)" }}>
         {/* Theme toggle */}
         <button
           onClick={toggle}
@@ -166,18 +255,33 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
           <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
         </button>
 
-        {/* User */}
-        <div className="flex items-center gap-3">
+        {/* User row + logout */}
+        <div className="flex items-center gap-2">
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
             style={{ background: "#6366f1" }}
           >
-            H
+            {initials}
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>Harrison</p>
-            <p className="text-xs truncate" style={{ color: "var(--text-faint)" }}>Admin</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>
+              {user?.full_name || user?.email || "…"}
+            </p>
+            <p className="text-xs capitalize truncate" style={{ color: "var(--text-faint)" }}>
+              {user?.role ?? "…"}
+            </p>
           </div>
+          <button
+            onClick={handleLogout}
+            disabled={loggingOut}
+            title="Sign out"
+            className="flex-shrink-0 text-xs px-2 py-1 rounded transition-colors"
+            style={{ color: "#6b7280", background: "none", border: "none", cursor: "pointer" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#f87171")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7280")}
+          >
+            {loggingOut ? "…" : "↩"}
+          </button>
         </div>
       </div>
     </aside>

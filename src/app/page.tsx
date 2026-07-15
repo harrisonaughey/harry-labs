@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import Sidebar from "@/components/Sidebar";
+import StoreTabBar from "@/components/StoreTabBar";
 import KpiCard from "@/components/KpiCard";
 import RevenueChart from "@/components/RevenueChart";
 import OrdersTable from "@/components/OrdersTable";
@@ -53,6 +54,9 @@ export default async function Dashboard({
         <Sidebar stores={stores} activePage="Overview" />
       </Suspense>
       <main className="flex-1 overflow-y-auto px-8 py-8">
+        <Suspense>
+          <StoreTabBar stores={stores} currentStoreId={storeId ?? null} />
+        </Suspense>
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>

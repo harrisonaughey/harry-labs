@@ -44,7 +44,7 @@ async function getCampaigns() {
   const advertiserId = process.env.TIKTOK_ADVERTISER_ID ?? "";
   const qs = new URLSearchParams({
     advertiser_id: advertiserId,
-    fields: JSON.stringify(["campaign_id", "campaign_name", "status", "budget", "budget_mode", "objective_type"]),
+    fields: JSON.stringify(["campaign_id", "campaign_name", "operation_status", "budget", "budget_mode", "objective_type"]),
     page_size: "100",
   });
   const res = await fetch(`${BASE}/campaign/get/?${qs}`, { headers: headers() });
@@ -58,16 +58,16 @@ export async function getTikTokStats(days: number) {
 
   const ACCOUNT_METRICS = [
     "spend", "impressions", "clicks", "ctr", "cpc",
-    "conversions", "cost_per_conversion", "conversion_rate",
-    "real_time_conversion_value",
+    "conversion", "cost_per_conversion", "conversion_rate",
+    "total_purchase_value",
     "video_play_actions", "video_watched_2s", "video_watched_6s",
     "average_video_play", "reach", "frequency",
   ];
 
   const CAMPAIGN_METRICS = [
     "spend", "impressions", "clicks", "ctr", "cpc",
-    "conversions", "cost_per_conversion",
-    "real_time_conversion_value",
+    "conversion", "cost_per_conversion",
+    "total_purchase_value",
     "video_play_actions", "video_watched_2s",
     "average_video_play", "reach", "frequency",
   ];
@@ -91,7 +91,7 @@ export async function getTikTokStats(days: number) {
       report_type: "BASIC",
       data_level: "AUCTION_ADVERTISER",
       dimensions: ["stat_time_day"],
-      metrics: ["spend", "impressions", "clicks", "conversions", "real_time_conversion_value"],
+      metrics: ["spend", "impressions", "clicks", "conversion", "total_purchase_value"],
       start_date: start, end_date: end,
     }),
     getCampaigns(),
@@ -105,17 +105,17 @@ export async function getTikTokStats(days: number) {
     clicks:             num(acct.clicks),
     ctr:                num(acct.ctr),
     cpc:                num(acct.cpc),
-    conversions:        num(acct.conversions),
+    conversions:        num(acct.conversion),
     costPerConversion:  num(acct.cost_per_conversion),
     conversionRate:     num(acct.conversion_rate),
-    conversionValue:    num(acct.real_time_conversion_value),
+    conversionValue:    num(acct.total_purchase_value),
     videoPlays:         num(acct.video_play_actions),
     watched2s:          num(acct.video_watched_2s),
     watched6s:          num(acct.video_watched_6s),
     avgPlaySec:         num(acct.average_video_play),
     reach:              num(acct.reach),
     frequency:          num(acct.frequency),
-    roas:               num(acct.spend) > 0 ? num(acct.real_time_conversion_value) / num(acct.spend) : 0,
+    roas:               num(acct.spend) > 0 ? num(acct.total_purchase_value) / num(acct.spend) : 0,
   };
 
   // Campaign name/status map
@@ -127,11 +127,11 @@ export async function getTikTokStats(days: number) {
     const m   = row.metrics ?? {};
     const meta = metaMap.get(cid) ?? {};
     const spend = num(m.spend);
-    const cv    = num(m.real_time_conversion_value);
+    const cv    = num(m.total_purchase_value);
     return {
       id:               cid,
       name:             meta.campaign_name ?? `Campaign ${cid}`,
-      status:           meta.status ?? "UNKNOWN",
+      status:           meta.operation_status ?? "UNKNOWN",
       objectiveType:    meta.objective_type ?? "",
       budget:           num(meta.budget),
       spend,
@@ -139,7 +139,7 @@ export async function getTikTokStats(days: number) {
       clicks:           num(m.clicks),
       ctr:              num(m.ctr),
       cpc:              num(m.cpc),
-      conversions:      num(m.conversions),
+      conversions:      num(m.conversion),
       costPerConv:      num(m.cost_per_conversion),
       conversionValue:  cv,
       videoPlays:       num(m.video_play_actions),
@@ -158,8 +158,8 @@ export async function getTikTokStats(days: number) {
       spend:       num(row.metrics?.spend),
       impressions: num(row.metrics?.impressions),
       clicks:      num(row.metrics?.clicks),
-      conversions: num(row.metrics?.conversions),
-      revenue:     num(row.metrics?.real_time_conversion_value),
+      conversions: num(row.metrics?.conversion),
+      revenue:     num(row.metrics?.total_purchase_value),
     }))
     .sort((a: any, b: any) => a.date.localeCompare(b.date));
 
