@@ -121,3 +121,110 @@ html.light .cal-badge-red   { background: #fee2e2; color: #dc2626; }
 html.light .cal-badge-blue  { background: #ede9fe; color: #4f46e5; }
 html.light .cal-badge-green { background: #d1fae5; color: #059669; }
 html.light .cal-badge-sent  { background: #dcfce7; color: #16a34a; }
+
+/* ═══════════════════════════════════════════════════════════════
+   BUTTON SYSTEM — Apple-grade interactions
+   80 ms transitions · scale press · CSS-first hover
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Strip tap flash (mobile) and text-selection on double-click */
+button, [role="button"], a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Speed up all Tailwind transition-all / transition-colors from 150 ms → 80 ms */
+.transition-all    { transition-duration: 80ms !important; }
+.transition-colors { transition-duration: 80ms !important; }
+
+/* ── Sidebar nav items ─────────────────────────────────────────── */
+.nav-item {
+  transition: background 80ms ease, color 80ms ease, transform 60ms ease;
+  will-change: transform;
+}
+/* Hover on inactive items */
+.nav-item:hover:not([data-active="true"]) {
+  background: var(--bg-subtle) !important;
+  color: var(--text-secondary) !important;
+}
+/* Active item kept via data attribute (replaces inline style) */
+.nav-item[data-active="true"] {
+  background: var(--bg-subtle) !important;
+  color: #a5b4fc !important;
+}
+/* Press scale */
+.nav-item:active {
+  transform: scale(0.97) !important;
+  transition: transform 50ms ease !important;
+}
+
+/* ── Store tab bar ─────────────────────────────────────────────── */
+.store-tab {
+  transition: background 80ms ease, color 80ms ease,
+              border-color 80ms ease, box-shadow 80ms ease;
+}
+.store-tab:hover:not([data-active="true"]) {
+  background: var(--bg-card) !important;
+  color: var(--text-secondary) !important;
+}
+.store-tab:active {
+  transform: scale(0.97);
+  transition: transform 50ms ease;
+}
+
+/* ── Inner tab strips (ad views, P&L, etc.) ───────────────────── */
+.tab-btn {
+  transition: background 80ms ease, color 80ms ease;
+}
+.tab-btn:hover:not([data-active="true"]) {
+  background: rgba(255,255,255,0.05) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* ── Icon / action buttons (refresh ↻, export ↓, links ↗) ──────── */
+.btn-icon {
+  transition: background 80ms ease, color 80ms ease, transform 60ms ease;
+  will-change: transform;
+}
+.btn-icon:hover {
+  background: var(--bg-subtle) !important;
+  color: var(--text-primary) !important;
+}
+.btn-icon:active {
+  transform: scale(0.88) !important;
+  transition: transform 50ms ease !important;
+}
+
+/* ── Sidebar footer (theme toggle) ────────────────────────────── */
+.sidebar-footer-btn {
+  transition: background 80ms ease, color 80ms ease, border-color 80ms ease;
+}
+.sidebar-footer-btn:hover {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border) !important;
+}
+
+/* ── Danger / destructive hover ───────────────────────────────── */
+.btn-danger {
+  transition: color 80ms ease, background 80ms ease;
+}
+.btn-danger:hover {
+  color: #f87171 !important;
+  background: rgba(239,68,68,0.08) !important;
+}
+
+/* ── Dropdown / popover appear animation ──────────────────────── */
+@keyframes popIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+.pop-in {
+  animation: popIn 90ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Global press scale on all enabled buttons ────────────────── */
+button:not([disabled]):not(.nav-item):not(.tab-btn):not(.btn-icon):active,
+[role="button"]:not([disabled]):active {
+  transform: scale(0.97);
+  transition: transform 50ms ease !important;
+}

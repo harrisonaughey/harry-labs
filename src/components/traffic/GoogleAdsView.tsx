@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import ConnectCard from "./ConnectCard";
+import DateRangePicker, { type DateRange, defaultDateRange } from "./DateRangePicker";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 type InnerTab  = "overview" | "campaigns" | "performance" | "optimise";
@@ -211,7 +212,7 @@ function KpiCard({ label, value, sub, icon, color, change, invert }: {
 }
 
 // Dual chart: spend bars + conversion line
-function DualChart({ daily, days }: { daily: Record<string, number>[]; days: number }) {
+function DualChart({ daily, label }: { daily: Record<string, number>[]; label: string }) {
   if (!daily.length) return (
     <div className="h-28 flex items-center justify-center text-xs" style={{ color: "var(--text-faint)" }}>
       No daily data for this period
@@ -241,7 +242,7 @@ function DualChart({ daily, days }: { daily: Record<string, number>[]; days: num
     <div>
       <div className="flex items-center justify-between mb-2">
         <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-          Daily Performance — last {days} days
+          Daily Performance — {label}
         </span>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5">
@@ -1029,9 +1030,9 @@ function ChangeLogSection() {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 export default function GoogleAdsView({ connected }: { connected: boolean }) {
-  const [tab,     setTab]     = useState<InnerTab>("overview");
-  const [days,    setDays]    = useState(30);
-  const [data,    setData]    = useState<Record<string, any> | null>(null);
+  const [tab,       setTab]       = useState<InnerTab>("overview");
+  const [dateRange, setDateRange] = useState<DateRange>(() => defaultDateRange("30d"));
+  const [data,      setData]      = useState<Record<string, any> | null>(null);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
   const [goals,   setGoals]   = useState<Goals>({});
@@ -1042,7 +1043,7 @@ export default function GoogleAdsView({ connected }: { connected: boolean }) {
     if (!connected) return;
     setLoading(true); setError(null);
     try {
-      const res  = await fetch(`/api/google/stats?days=${days}`);
+      const res  = await fetch(`/api/google/stats?since=${dateRange.since}&until=${dateRange.until}`);
       const json = await res.json();
       if (json.error) setError(json.error);
       else setData(json);
@@ -1051,7 +1052,7 @@ export default function GoogleAdsView({ connected }: { connected: boolean }) {
     } finally {
       setLoading(false);
     }
-  }, [connected, days]);
+  }, [connected, dateRange]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -1081,32 +1082,25 @@ export default function GoogleAdsView({ connected }: { connected: boolean }) {
     <div>
       {/* Controls */}
       <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <div className="flex gap-1">
-          {[7, 30, 90].map((d) => (
-            <button key={d} onClick={() => setDays(d)}
-              className="text-xs px-3 py-1.5 rounded-md font-medium"
-              style={{ background: days === d ? "#1e1e30" : "transparent", color: days === d ? "#a5b4fc" : "var(--text-muted)", border: `1px solid ${days === d ? "#3730a3" : "var(--border)"}` }}>
-              {d}d
-            </button>
-          ))}
-        </div>
+        <DateRangePicker value={dateRange} onChange={setDateRange} accentColor="#4285F4" />
         <div className="flex items-center gap-2">
           <div className="flex p-0.5 rounded-lg" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
             {TABS.map((t) => (
               <button key={t.id} onClick={() => setTab(t.id)}
-                className="text-xs px-3 py-1.5 rounded-md font-medium"
+                data-active={tab === t.id ? "true" : "false"}
+                className="tab-btn text-xs px-3 py-1.5 rounded-md font-medium"
                 style={{ background: tab === t.id ? "#1e1e30" : "transparent", color: tab === t.id ? "#a5b4fc" : "var(--text-muted)" }}>
                 {t.label}
               </button>
             ))}
           </div>
           <button onClick={load} disabled={loading}
-            className="text-xs px-3 py-1.5 rounded-md disabled:opacity-50"
+            className="btn-icon text-xs px-3 py-1.5 rounded-md disabled:opacity-50"
             style={{ background: "#1e1e30", color: "#a5b4fc", border: "1px solid #3730a3" }}>
             {loading ? "…" : "↻"}
           </button>
           <a href="https://ads.google.com" target="_blank" rel="noopener noreferrer"
-            className="text-xs px-3 py-1.5 rounded-md font-medium hover:opacity-80"
+            className="btn-icon text-xs px-3 py-1.5 rounded-md font-medium"
             style={{ background: "#4285F420", color: "#4285F4", border: "1px solid #4285F440" }}>
             Google Ads ↗
           </a>
@@ -1131,12 +1125,12 @@ export default function GoogleAdsView({ connected }: { connected: boolean }) {
         <>
           {daily.length > 0 && (
             <div className="rounded-xl p-5 mb-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-              <DualChart daily={daily} days={days} />
+              <DualChart daily={daily} label={dateRange.label} />
             </div>
           )}
 
           <div className="grid grid-cols-4 gap-4 mb-4">
-            <KpiCard label="Total Spend"  value={fmt(a.spend ?? 0)} icon="💸" sub={`last ${days} days`}
+            <KpiCard label="Total Spend"  value={fmt(a.spend ?? 0)} icon="💸" sub={dateRange.label}
               change={pct(a.spend ?? 0, prev.spend ?? 0)} invert />
             <KpiCard label="ROAS"         value={(a.roas ?? 0).toFixed(2) + "×"} icon="💰" color={roasColor}
               sub={goals.roas ? `Goal: ${goals.roas}×` : fmt(a.conversionValue ?? 0) + " value"}
@@ -1209,7 +1203,7 @@ export default function GoogleAdsView({ connected }: { connected: boolean }) {
         <>
           {daily.length > 0 && (
             <div className="rounded-xl p-5 mb-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-              <DualChart daily={daily} days={days} />
+              <DualChart daily={daily} label={dateRange.label} />
             </div>
           )}
 

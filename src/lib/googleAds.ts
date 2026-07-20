@@ -38,16 +38,8 @@ async function getAccessToken(): Promise<string> {
   return data.access_token;
 }
 
-// Maps days to a valid GAQL date predicate. LAST_90_DAYS is not a valid GAQL
-// literal so any non-standard value uses an explicit BETWEEN range instead.
-function gaqlDateFilter(days: number): string {
-  if (days === 7)  return "DURING LAST_7_DAYS";
-  if (days === 14) return "DURING LAST_14_DAYS";
-  if (days === 30) return "DURING LAST_30_DAYS";
-  const until = new Date(); until.setDate(until.getDate() - 1);
-  const since = new Date(); since.setDate(since.getDate() - days);
-  const fmt = (d: Date) => d.toISOString().split("T")[0];
-  return `BETWEEN '${fmt(since)}' AND '${fmt(until)}'`;
+function gaqlDateRange(since: string, until: string): string {
+  return `BETWEEN '${since}' AND '${until}'`;
 }
 
 async function rawSearch(
@@ -159,12 +151,13 @@ function sumMetrics(rows: any[]): Record<string, number> {
 }
 
 // ─── Previous period (for % change comparison) ───────────────────────────────
-export async function getGooglePreviousStats(days: number) {
-  const until = new Date();
-  until.setDate(until.getDate() - days - 1);
-  const since = new Date(until);
-  since.setDate(since.getDate() - days + 1);
-  const fmt = (d: Date) => d.toISOString().split("T")[0];
+export async function getGooglePreviousStats({ since, until }: { since: string; until: string }) {
+  const startDate = new Date(since + "T00:00:00");
+  const endDate   = new Date(until + "T00:00:00");
+  const spanDays  = Math.round((endDate.getTime() - startDate.getTime()) / 86_400_000) + 1;
+  const prevEnd   = new Date(startDate); prevEnd.setDate(prevEnd.getDate() - 1);
+  const prevStart = new Date(prevEnd);   prevStart.setDate(prevStart.getDate() - (spanDays - 1));
+  const fmt       = (d: Date) => d.toISOString().split("T")[0];
 
   const rows = await gaqlQuery(`
     SELECT
@@ -174,7 +167,7 @@ export async function getGooglePreviousStats(days: number) {
       metrics.conversions,
       metrics.conversions_value
     FROM customer
-    WHERE segments.date BETWEEN '${fmt(since)}' AND '${fmt(until)}'
+    WHERE segments.date BETWEEN '${fmt(prevStart)}' AND '${fmt(prevEnd)}'
   `);
   const t         = sumMetrics(rows);
   const spend     = (t.costMicros ?? 0) / 1_000_000;
@@ -204,7 +197,7 @@ export async function getGoogleSpendRange(since: string, until: string): Promise
 }
 
 // ─── Account-level summary ────────────────────────────────────────────────────
-export async function getGoogleAccountStats(days = 30) {
+export async function getGoogleAccountStats({ since, until }: { since: string; until: string }) {
   const rows = await gaqlQuery(`
     SELECT
       metrics.cost_micros,
@@ -213,7 +206,7 @@ export async function getGoogleAccountStats(days = 30) {
       metrics.conversions,
       metrics.conversions_value
     FROM customer
-    WHERE segments.date ${gaqlDateFilter(days)}
+    WHERE segments.date ${gaqlDateRange(since, until)}
   `);
   const t         = sumMetrics(rows);
   const spend     = (t.costMicros ?? 0) / 1_000_000;
@@ -235,7 +228,7 @@ export async function getGoogleAccountStats(days = 30) {
 }
 
 // ─── Campaign breakdown ───────────────────────────────────────────────────────
-export async function getGoogleCampaigns(days = 30) {
+export async function getGoogleCampaigns({ since, until }: { since: string; until: string }) {
   const rows = await gaqlQuery(`
     SELECT
       campaign.id,
@@ -248,7 +241,7 @@ export async function getGoogleCampaigns(days = 30) {
       metrics.conversions,
       metrics.conversions_value
     FROM campaign
-    WHERE segments.date ${gaqlDateFilter(days)}
+    WHERE segments.date ${gaqlDateRange(since, until)}
       AND campaign.status != 'REMOVED'
     ORDER BY metrics.cost_micros DESC
     LIMIT 50
@@ -279,7 +272,7 @@ export async function getGoogleCampaigns(days = 30) {
 }
 
 // ─── Daily spend trend ────────────────────────────────────────────────────────
-export async function getGoogleDailySpend(days = 30) {
+export async function getGoogleDailySpend({ since, until }: { since: string; until: string }) {
   const rows = await gaqlQuery(`
     SELECT
       segments.date,
@@ -288,7 +281,7 @@ export async function getGoogleDailySpend(days = 30) {
       metrics.clicks,
       metrics.conversions
     FROM customer
-    WHERE segments.date ${gaqlDateFilter(days)}
+    WHERE segments.date ${gaqlDateRange(since, until)}
     ORDER BY segments.date ASC
   `);
   return rows.map((row: any) => ({

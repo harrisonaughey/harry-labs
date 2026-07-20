@@ -53,8 +53,9 @@ async function getCampaigns() {
   return (json.data?.list ?? []) as any[];
 }
 
-export async function getTikTokStats(days: number) {
-  const { start, end } = dateRange(days);
+export async function getTikTokStats({ since, until }: { since: string; until: string }) {
+  const start = since;
+  const end   = until;
 
   const ACCOUNT_METRICS = [
     "spend", "impressions", "clicks", "ctr", "cpc",

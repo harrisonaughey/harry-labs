@@ -3,8 +3,6 @@ import { useState, useEffect } from "react";
 import MetaAdsView from "./MetaAdsView";
 import GoogleAdsView from "./GoogleAdsView";
 import TikTokAdsView from "./TikTokAdsView";
-import ConnectCard from "./ConnectCard";
-import SpendChart from "./SpendChart";
 
 type Props = { metaConnected: boolean; metaTokenError?: string | null; googleConnected: boolean; tiktokConnected: boolean };
 
@@ -15,31 +13,72 @@ const TABS = [
   { id: "tiktok",    label: "TikTok Ads", icon: "🎵", color: "#ee1d52" },
 ];
 
+const PLATFORM_COLOR: Record<string, string> = {
+  meta: "#1877F2", google: "#4285F4", tiktok: "#ee1d52",
+};
+
+type PlatformStats = {
+  spend:           number;
+  roas:            number;
+  conversions:     number;
+  conversionValue: number;
+};
+
 // ─── Blended cross-platform banner ───────────────────────────────────────────
 function BlendedBanner({ metaConnected, googleConnected, tiktokConnected }: {
   metaConnected: boolean; googleConnected: boolean; tiktokConnected: boolean;
 }) {
-  const [metaData,   setMetaData]   = useState<any>(null);
-  const [googleData, setGoogleData] = useState<any>(null);
-  const [tiktokData, setTiktokData] = useState<any>(null);
+  const [metaData,   setMetaData]   = useState<PlatformStats | null>(null);
+  const [googleData, setGoogleData] = useState<PlatformStats | null>(null);
+  const [tiktokData, setTiktokData] = useState<PlatformStats | null>(null);
 
   useEffect(() => {
     if (metaConnected) {
       fetch("/api/meta/stats?preset=last_30d&days=30")
         .then((r) => r.json())
-        .then((d) => { if (!d.error) setMetaData(d.account); })
+        .then((d) => {
+          if (!d.error) {
+            const a = d.account ?? {};
+            setMetaData({
+              spend:           a.spend           ?? 0,
+              roas:            a.roas             ?? 0,
+              conversions:     a.conversions      ?? 0,
+              conversionValue: a.conversionValue  ?? 0,
+            });
+          }
+        })
         .catch(() => {});
     }
     if (googleConnected) {
       fetch("/api/google/stats?days=30")
         .then((r) => r.json())
-        .then((d) => { if (!d.error) setGoogleData(d.account); })
+        .then((d) => {
+          if (!d.error) {
+            const a = d.account ?? {};
+            setGoogleData({
+              spend:           a.spend              ?? 0,
+              roas:            a.roas               ?? 0,
+              conversions:     a.conversions        ?? 0,
+              conversionValue: a.conversionValue    ?? a.conversionRevenue ?? 0,
+            });
+          }
+        })
         .catch(() => {});
     }
     if (tiktokConnected) {
       fetch("/api/tiktok/stats?days=30")
         .then((r) => r.json())
-        .then((d) => { if (!d.error) setTiktokData(d.account); })
+        .then((d) => {
+          if (!d.error) {
+            const a = d.account ?? {};
+            setTiktokData({
+              spend:           a.spend           ?? 0,
+              roas:            a.roas             ?? 0,
+              conversions:     a.conversions      ?? 0,
+              conversionValue: a.conversionValue  ?? 0,
+            });
+          }
+        })
         .catch(() => {});
     }
   }, [metaConnected, googleConnected, tiktokConnected]);
@@ -51,9 +90,16 @@ function BlendedBanner({ metaConnected, googleConnected, tiktokConnected }: {
   const tiktokSpend = tiktokData?.spend  ?? 0;
   const totalSpend  = metaSpend + googleSpend + tiktokSpend;
 
-  const metaRoas    = metaData?.roas     ?? 0;
-  const googleRoas  = googleData?.roas   ?? 0;
-  const tiktokRoas  = tiktokData?.roas   ?? 0;
+  const totalConversions = (metaData?.conversions     ?? 0)
+                         + (googleData?.conversions   ?? 0)
+                         + (tiktokData?.conversions   ?? 0);
+  const totalRevenue     = (metaData?.conversionValue    ?? 0)
+                         + (googleData?.conversionValue  ?? 0)
+                         + (tiktokData?.conversionValue  ?? 0);
+
+  const metaRoas    = metaData?.roas   ?? 0;
+  const googleRoas  = googleData?.roas ?? 0;
+  const tiktokRoas  = tiktokData?.roas ?? 0;
   const blendedRoas = totalSpend > 0
     ? (metaSpend * metaRoas + googleSpend * googleRoas + tiktokSpend * tiktokRoas) / totalSpend
     : 0;
@@ -62,108 +108,92 @@ function BlendedBanner({ metaConnected, googleConnected, tiktokConnected }: {
   const googlePct = totalSpend > 0 ? (googleSpend / totalSpend) * 100 : 0;
   const tiktokPct = totalSpend > 0 ? (tiktokSpend / totalSpend) * 100 : 0;
 
+  const fmt = (v: number) => `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const fmtK = (v: number) => v >= 1000 ? `${(v / 1000).toFixed(1)}K` : v.toFixed(1);
+
+  const platforms = [
+    { id: "meta",   label: "Meta",   connected: metaConnected,   data: metaData,   spend: metaSpend,   roas: metaRoas,   pct: metaPct   },
+    { id: "google", label: "Google", connected: googleConnected, data: googleData, spend: googleSpend, roas: googleRoas, pct: googlePct },
+    { id: "tiktok", label: "TikTok", connected: tiktokConnected, data: tiktokData, spend: tiktokSpend, roas: tiktokRoas, pct: tiktokPct },
+  ].filter((p) => p.connected);
+
+  const maxRoas = Math.max(...platforms.map((p) => p.roas), 0.01);
+
   return (
     <div className="rounded-xl p-5 mb-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-      <div className="flex items-start justify-between">
-        {/* Left: blended totals */}
-        <div>
-          <p className="text-xs uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>
-            Blended Performance — Last 30 Days
-          </p>
-          <div className="flex items-end gap-8">
-            <div>
-              <p className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
-                ${totalSpend.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Total Ad Spend</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold"
-                style={{ color: blendedRoas >= 2 ? "#10b981" : blendedRoas >= 1 ? "#fbbf24" : blendedRoas > 0 ? "#ef4444" : "var(--text-faint)" }}>
-                {blendedRoas > 0 ? `${blendedRoas.toFixed(2)}×` : "—"}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Blended ROAS</p>
-            </div>
+      <p className="text-xs uppercase tracking-wider mb-4" style={{ color: "var(--text-muted)" }}>
+        Blended Performance — Last 30 Days
+      </p>
+
+      {/* Top row: 4 headline KPIs */}
+      <div className="grid grid-cols-4 gap-4 mb-5">
+        {[
+          { label: "Total Ad Spend",    value: fmt(totalSpend),    color: "var(--text-primary)" },
+          { label: "Total Revenue",     value: totalRevenue > 0 ? fmt(totalRevenue) : "—",
+            color: totalRevenue > 0 ? "#10b981" : "var(--text-faint)" },
+          { label: "Blended ROAS",      value: blendedRoas > 0 ? `${blendedRoas.toFixed(2)}×` : "—",
+            color: blendedRoas >= 2 ? "#10b981" : blendedRoas >= 1 ? "#fbbf24" : blendedRoas > 0 ? "#ef4444" : "var(--text-faint)" },
+          { label: "Total Conversions", value: totalConversions > 0 ? fmtK(totalConversions) : "—",
+            color: "var(--text-primary)" },
+        ].map((kpi) => (
+          <div key={kpi.label}>
+            <p className="text-xl font-bold" style={{ color: kpi.color }}>{kpi.value}</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{kpi.label}</p>
           </div>
-
-          {/* Spend split bar */}
-          {totalSpend > 0 && (
-            <div className="mt-4">
-              <div className="flex rounded-full overflow-hidden h-1.5" style={{ width: 280, background: "var(--bg-subtle)" }}>
-                {metaConnected && metaSpend > 0 && <div style={{ width: `${metaPct}%`, background: "#1877F2" }} />}
-                {googleConnected && googleSpend > 0 && <div style={{ width: `${googlePct}%`, background: "#4285F4" }} />}
-                {tiktokConnected && tiktokSpend > 0 && <div style={{ width: `${tiktokPct}%`, background: "#ee1d52" }} />}
-              </div>
-              <div className="flex items-center gap-4 mt-1.5">
-                {metaConnected && (
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full" style={{ background: "#1877F2" }} />
-                    <span className="text-xs" style={{ color: "var(--text-faint)" }}>Meta {metaPct.toFixed(0)}%</span>
-                  </div>
-                )}
-                {googleConnected && (
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full" style={{ background: "#4285F4" }} />
-                    <span className="text-xs" style={{ color: "var(--text-faint)" }}>Google {googlePct.toFixed(0)}%</span>
-                  </div>
-                )}
-                {tiktokConnected && (
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full" style={{ background: "#ee1d52" }} />
-                    <span className="text-xs" style={{ color: "var(--text-faint)" }}>TikTok {tiktokPct.toFixed(0)}%</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right: per-platform breakdown */}
-        <div className="flex gap-6">
-          {metaConnected && (
-            <div className="text-right">
-              <div className="flex items-center gap-1.5 justify-end mb-2">
-                <div className="w-2 h-2 rounded-full" style={{ background: "#1877F2" }} />
-                <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Meta Ads</span>
-              </div>
-              <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
-                ${metaSpend.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: metaRoas >= 1 ? "#10b981" : metaRoas > 0 ? "#ef4444" : "var(--text-faint)" }}>
-                {metaRoas > 0 ? `${metaRoas.toFixed(2)}× ROAS` : metaData ? "No conversions" : "Loading…"}
-              </p>
-            </div>
-          )}
-          {googleConnected && (
-            <div className="text-right">
-              <div className="flex items-center gap-1.5 justify-end mb-2">
-                <div className="w-2 h-2 rounded-full" style={{ background: "#4285F4" }} />
-                <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Google Ads</span>
-              </div>
-              <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
-                ${googleSpend.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: googleRoas >= 1 ? "#10b981" : googleRoas > 0 ? "#ef4444" : "var(--text-faint)" }}>
-                {googleRoas > 0 ? `${googleRoas.toFixed(2)}× ROAS` : googleData ? "No conversions" : "Loading…"}
-              </p>
-            </div>
-          )}
-          {tiktokConnected && (
-            <div className="text-right">
-              <div className="flex items-center gap-1.5 justify-end mb-2">
-                <div className="w-2 h-2 rounded-full" style={{ background: "#ee1d52" }} />
-                <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>TikTok Ads</span>
-              </div>
-              <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>
-                ${tiktokSpend.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-              <p className="text-xs mt-0.5" style={{ color: tiktokRoas >= 1 ? "#10b981" : tiktokRoas > 0 ? "#ef4444" : "var(--text-faint)" }}>
-                {tiktokRoas > 0 ? `${tiktokRoas.toFixed(2)}× ROAS` : tiktokData ? "No conversions" : "Loading…"}
-              </p>
-            </div>
-          )}
-        </div>
+        ))}
       </div>
+
+      {/* Spend split bar */}
+      {totalSpend > 0 && (
+        <div className="mb-5">
+          <div className="flex rounded-full overflow-hidden h-1.5 mb-2" style={{ background: "var(--bg-subtle)" }}>
+            {platforms.map((p) => p.spend > 0 && (
+              <div key={p.id} style={{ width: `${p.pct}%`, background: PLATFORM_COLOR[p.id] }} />
+            ))}
+          </div>
+          <div className="flex items-center gap-4">
+            {platforms.map((p) => (
+              <div key={p.id} className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full" style={{ background: PLATFORM_COLOR[p.id] }} />
+                <span className="text-xs" style={{ color: "var(--text-faint)" }}>{p.label} {p.pct.toFixed(0)}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Per-platform ROAS comparison bars */}
+      {platforms.some((p) => p.roas > 0) && (
+        <div className="pt-4" style={{ borderTop: "1px solid var(--border)" }}>
+          <p className="text-xs mb-3" style={{ color: "var(--text-faint)" }}>ROAS by Platform</p>
+          <div className="space-y-2.5">
+            {platforms.map((p) => {
+              const barW = maxRoas > 0 ? (p.roas / maxRoas) * 100 : 0;
+              const roasColor = p.roas >= 2 ? "#10b981" : p.roas >= 1 ? "#fbbf24" : p.roas > 0 ? "#ef4444" : "var(--text-faint)";
+              return (
+                <div key={p.id} className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5" style={{ width: 68 }}>
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: PLATFORM_COLOR[p.id] }} />
+                    <span className="text-xs" style={{ color: "var(--text-secondary)" }}>{p.label}</span>
+                  </div>
+                  <div className="flex-1 h-1.5 rounded-full" style={{ background: "var(--bg-subtle)" }}>
+                    <div className="h-1.5 rounded-full" style={{ width: `${barW}%`, background: PLATFORM_COLOR[p.id] }} />
+                  </div>
+                  <span className="text-xs font-semibold w-12 text-right" style={{ color: roasColor }}>
+                    {p.roas > 0 ? `${p.roas.toFixed(2)}×` : p.data ? "—" : "…"}
+                  </span>
+                  <span className="text-xs w-16 text-right" style={{ color: "var(--text-faint)" }}>
+                    {fmt(p.spend)}
+                  </span>
+                  <span className="text-xs w-16 text-right" style={{ color: "var(--text-faint)" }}>
+                    {(p.data?.conversions ?? 0) > 0 ? `${fmtK(p.data!.conversions)} conv` : p.data ? "0 conv" : "…"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -259,7 +289,8 @@ export default function TrafficDashboard({ metaConnected, metaTokenError, google
             false;
           return (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className="flex items-center gap-2 text-sm px-4 py-1.5 rounded-md font-medium transition-all"
+              data-active={tab === t.id ? "true" : "false"}
+              className="tab-btn flex items-center gap-2 text-sm px-4 py-1.5 rounded-md font-medium"
               style={{
                 background: tab === t.id ? "#1e1e30" : "transparent",
                 color:      tab === t.id ? "#a5b4fc" : "var(--text-muted)",

@@ -3,9 +3,9 @@ import { useState, useEffect, useCallback, Fragment } from "react";
 import ConnectCard from "./ConnectCard";
 import SpendChart from "./SpendChart";
 import AgentInsightsPanel from "./AgentInsightsPanel";
+import DateRangePicker, { type DateRange, defaultDateRange } from "./DateRangePicker";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type DateMode = "7d" | "30d" | "90d" | "custom";
 type InnerTab = "reporting" | "management" | "agent";
 type Priority = "high" | "medium" | "low";
 type RecType  = "pause" | "budget_increase" | "budget_decrease" | "refresh_creative" | "investigate" | "review_audience";
@@ -61,12 +61,6 @@ function fmt(v: number) {
   return `$${v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function apiDateParams(mode: DateMode, since: string, until: string) {
-  if (mode === "custom" && since && until) return `since=${since}&until=${until}`;
-  const presetMap: Record<string, string> = { "7d": "last_7d", "30d": "last_30d", "90d": "last_90d" };
-  const daysMap:   Record<string, string> = { "7d": "7",       "30d": "30",       "90d": "90"       };
-  return `preset=${presetMap[mode] ?? "last_30d"}&days=${daysMap[mode] ?? "30"}`;
-}
 
 function timeAgo(ts: number) {
   const diff = Date.now() - ts;
@@ -819,21 +813,19 @@ function CampaignTable({
 
 // ─── Main view ────────────────────────────────────────────────────────────────
 export default function MetaAdsView({ connected }: { connected: boolean }) {
-  const [innerTab, setInnerTab] = useState<InnerTab>("reporting");
-  const [mode,     setMode]     = useState<DateMode>("30d");
-  const [since,    setSince]    = useState("");
-  const [until,    setUntil]    = useState("");
-  const [data,     setData]     = useState<any>(null);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState<string | null>(null);
-  const [goals,    setGoals]    = useState<Goals>({});
+  const [innerTab,   setInnerTab]   = useState<InnerTab>("reporting");
+  const [dateRange,  setDateRange]  = useState<DateRange>(() => defaultDateRange("30d"));
+  const [data,       setData]       = useState<any>(null);
+  const [loading,    setLoading]    = useState(false);
+  const [error,      setError]      = useState<string | null>(null);
+  const [goals,      setGoals]      = useState<Goals>({});
 
   const [expanded,   setExpanded]   = useState<Record<string, any[] | "loading">>({});
   const [adExpanded, setAdExpanded] = useState<Record<string, any[] | "loading">>({});
 
   useEffect(() => { setGoals(readGoals()); }, []);
 
-  const dateParam = apiDateParams(mode, since, until);
+  const dateParam = `since=${dateRange.since}&until=${dateRange.until}`;
 
   const load = useCallback(async () => {
     if (!connected) return;
@@ -913,31 +905,15 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
       {/* ── Top controls ─────────────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         {/* Date range */}
-        <div className="flex flex-wrap items-center gap-1">
-          {(["7d", "30d", "90d", "custom"] as DateMode[]).map((m) => (
-            <button key={m} onClick={() => setMode(m)}
-              className="text-xs px-3 py-1.5 rounded-md font-medium"
-              style={{ background: mode === m ? "#1e1e30" : "transparent", color: mode === m ? "#a5b4fc" : "var(--text-muted)", border: `1px solid ${mode === m ? "#3730a3" : "var(--border)"}` }}>
-              {m === "custom" ? "Custom" : m}
-            </button>
-          ))}
-          {mode === "custom" && (
-            <div className="flex items-center gap-1 ml-2">
-              <input type="date" value={since} onChange={(e) => setSince(e.target.value)} className="text-xs px-2 py-1 rounded"
-                style={{ background: "var(--bg-subtle)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
-              <span className="text-xs" style={{ color: "var(--text-faint)" }}>–</span>
-              <input type="date" value={until} onChange={(e) => setUntil(e.target.value)} className="text-xs px-2 py-1 rounded"
-                style={{ background: "var(--bg-subtle)", border: "1px solid var(--border)", color: "var(--text-primary)" }} />
-            </div>
-          )}
-        </div>
+        <DateRangePicker value={dateRange} onChange={setDateRange} accentColor="#1877F2" />
 
         {/* Inner tab + refresh */}
         <div className="flex items-center gap-2">
           <div className="flex p-0.5 rounded-lg" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
             {(["reporting", "management", "agent"] as InnerTab[]).map((t) => (
               <button key={t} onClick={() => setInnerTab(t)}
-                className="text-xs px-3 py-1.5 rounded-md font-medium capitalize"
+                data-active={innerTab === t ? "true" : "false"}
+                className="tab-btn text-xs px-3 py-1.5 rounded-md font-medium capitalize"
                 style={{ background: innerTab === t ? "#1e1e30" : "transparent", color: innerTab === t ? "#a5b4fc" : "var(--text-muted)" }}>
                 {t === "reporting" ? "📊 Reporting" : t === "management" ? "⚙️ Management" : "🤖 Agent"}
               </button>
@@ -945,13 +921,13 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
           </div>
           {innerTab === "reporting" && (
             <button onClick={() => exportCsv(campaigns)} disabled={campaigns.length === 0}
-              className="text-xs px-3 py-1.5 rounded-md disabled:opacity-40"
+              className="btn-icon text-xs px-3 py-1.5 rounded-md disabled:opacity-40"
               style={{ background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
               ↓ CSV
             </button>
           )}
           <button onClick={load} disabled={loading}
-            className="text-xs px-3 py-1.5 rounded-md disabled:opacity-50"
+            className="btn-icon text-xs px-3 py-1.5 rounded-md disabled:opacity-50"
             style={{ background: "#1e1e30", color: "#a5b4fc", border: "1px solid #3730a3" }}>
             {loading ? "Loading…" : "↻ Refresh"}
           </button>

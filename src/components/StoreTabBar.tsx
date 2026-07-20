@@ -56,7 +56,8 @@ export default function StoreTabBar({
           <Link
             key={store.id}
             href={`${pathname}?store=${store.id}`}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all flex-shrink-0"
+            data-active={isActive ? "true" : "false"}
+            className="store-tab flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium flex-shrink-0"
             style={{
               background: isActive ? "#1e1e30" : "var(--bg-subtle)",
               color: isActive ? "#a5b4fc" : "var(--text-muted)",
@@ -102,7 +103,7 @@ export default function StoreTabBar({
           const shop = window.prompt("Enter your Shopify store domain (e.g. mystore.myshopify.com):");
           if (shop) window.location.href = `/api/shopify/install?shop=${encodeURIComponent(shop.trim())}`;
         }}
-        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80 flex-shrink-0"
+        className="store-tab flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium flex-shrink-0"
         style={{ color: "var(--text-faint)", border: "1px dashed var(--border)" }}
       >
         + Add Store

@@ -176,11 +176,8 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
                   <button
                     key={item.href}
                     onClick={() => handleNav(item.href)}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all text-left group relative"
-                    style={{
-                      background: active ? "var(--bg-subtle)" : "transparent",
-                      color: active ? "#a5b4fc" : "#6b7280",
-                    }}
+                    data-active={active ? "true" : "false"}
+                    className="nav-item w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-left relative"
                   >
                     {/* Active indicator */}
                     {active && (
@@ -214,11 +211,8 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
                   <button
                     key={item.href}
                     onClick={() => router.push(item.href)}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all text-left group relative"
-                    style={{
-                      background: active ? "var(--bg-subtle)" : "transparent",
-                      color: active ? "#a5b4fc" : "#6b7280",
-                    }}
+                    data-active={active ? "true" : "false"}
+                    className="nav-item w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium text-left relative"
                   >
                     {active && (
                       <span
@@ -242,7 +236,7 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
         <button
           onClick={toggle}
           title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all"
+          className="sidebar-footer-btn w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium"
           style={{
             background: "var(--bg-subtle)",
             color: "var(--text-muted)",
@@ -275,10 +269,8 @@ export default function Sidebar({ stores, activePage }: { stores: Store[]; activ
             onClick={handleLogout}
             disabled={loggingOut}
             title="Sign out"
-            className="flex-shrink-0 text-xs px-2 py-1 rounded transition-colors"
-            style={{ color: "#6b7280", background: "none", border: "none", cursor: "pointer" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#f87171")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7280")}
+            className="btn-danger flex-shrink-0 text-xs px-2 py-1 rounded-md"
+            style={{ color: "#6b7280", background: "none" }}
           >
             {loggingOut ? "…" : "↩"}
           </button>
