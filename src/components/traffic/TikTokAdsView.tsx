@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import ConnectCard from "./ConnectCard";
+import AccountHealthPanel from "./AccountHealthPanel";
 import DateRangePicker, { type DateRange, defaultDateRange } from "./DateRangePicker";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1077,6 +1078,8 @@ export default function TikTokAdsView({ connected }: { connected: boolean }) {
       {/* ══ OVERVIEW ══════════════════════════════════════════════════════════ */}
       {tab === "overview" && (
         <>
+          <AccountHealthPanel platform="tiktok" accentColor="#ee1d52" />
+
           {daily.length > 0 && (
             <div className="rounded-xl p-5 mb-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
               <DualChart daily={daily} label={dateRange.label} />

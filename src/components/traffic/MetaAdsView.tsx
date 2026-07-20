@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, Fragment } from "react";
 import ConnectCard from "./ConnectCard";
 import SpendChart from "./SpendChart";
 import AgentInsightsPanel from "./AgentInsightsPanel";
+import AccountHealthPanel from "./AccountHealthPanel";
 import DateRangePicker, { type DateRange, defaultDateRange } from "./DateRangePicker";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -945,6 +946,8 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
       {/* ══════════════ REPORTING TAB ══════════════ */}
       {innerTab === "reporting" && (
         <>
+          <AccountHealthPanel platform="meta" accentColor="#1877F2" />
+
           {daily.length > 0 && (
             <div className="rounded-xl p-5 mb-5" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
               <SpendChart data={daily} color="#1877F2" label="Daily Spend — Meta Ads" />

@@ -446,13 +446,19 @@ async function fetchAgentActions() {
 }
 
 // ─── Main handler ──────────────────────────────────────────────────────────────
-export async function GET() {
-  const [meta, google, tiktok, agentActions] = await Promise.all([
-    metaHealth(),
-    googleHealth(),
-    tiktokHealth(),
+export async function GET(req: Request) {
+  const platform = new URL(req.url).searchParams.get("platform") as "meta" | "google" | "tiktok" | null;
+
+  const [health, agentActions] = await Promise.all([
+    platform === "meta"   ? metaHealth()   :
+    platform === "google" ? googleHealth() :
+    platform === "tiktok" ? tiktokHealth() :
+    Promise.all([metaHealth(), googleHealth(), tiktokHealth()]).then(([meta, google, tiktok]) => ({ meta, google, tiktok })),
     fetchAgentActions(),
   ]);
 
-  return NextResponse.json({ meta, google, tiktok, agentActions });
+  if (platform) {
+    return NextResponse.json({ health, agentActions });
+  }
+  return NextResponse.json({ ...(health as any), agentActions });
 }
