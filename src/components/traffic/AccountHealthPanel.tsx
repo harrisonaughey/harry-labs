@@ -62,56 +62,70 @@ function RecommendedActions({
   health: PlatformHealth;
   agentActions: { pending: AgentAction[]; recent: AgentAction[] };
 }) {
+  const [open, setOpen] = useState(false);
+
   const sevOrder: Record<string, number> = { critical: 0, warning: 1, info: 2 };
   const actionableIssues = [...health.issues]
     .filter((i) => i.action)
     .sort((a, b) => sevOrder[a.severity] - sevOrder[b.severity]);
 
   const agentRecs = agentActions.pending;
+  const total = actionableIssues.length + agentRecs.length;
 
-  if (actionableIssues.length === 0 && agentRecs.length === 0) return null;
+  if (total === 0) return null;
+
+  const hasCritical = actionableIssues.some((i) => i.severity === "critical");
+  const badgeColor  = hasCritical ? "#ef4444" : "#a5b4fc";
+  const badgeBg     = hasCritical ? "#ef444418" : "#6366f118";
 
   return (
     <div className="rounded-xl overflow-hidden mt-4"
       style={{ background: "var(--bg-card)", border: "1px solid #6366f128" }}>
-      <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: "1px solid var(--border)" }}>
+      <button
+        className="w-full px-5 py-3 flex items-center gap-2"
+        style={{ borderBottom: open ? "1px solid var(--border)" : "none" }}
+        onClick={() => setOpen((v) => !v)}
+      >
         <span>🎯</span>
         <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Recommended Actions</span>
         <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
-          style={{ background: "#6366f118", color: "#a5b4fc" }}>
-          {actionableIssues.length + agentRecs.length}
+          style={{ background: badgeBg, color: badgeColor }}>
+          {total}
         </span>
-      </div>
+        <span className="ml-auto text-xs" style={{ color: "var(--text-faint)" }}>{open ? "▲" : "▼"}</span>
+      </button>
 
-      <div className="divide-y" style={{ borderColor: "var(--border)" }}>
-        {actionableIssues.map((issue, i) => {
-          const cfg = SEV_CFG[issue.severity];
-          return (
-            <div key={i} className="px-5 py-3.5 flex items-start gap-3">
-              <span className="text-sm flex-shrink-0 mt-0.5 font-bold" style={{ color: cfg.color }}>{cfg.icon}</span>
+      {open && (
+        <div className="divide-y" style={{ borderColor: "var(--border)" }}>
+          {actionableIssues.map((issue, i) => {
+            const cfg = SEV_CFG[issue.severity];
+            return (
+              <div key={i} className="px-5 py-3.5 flex items-start gap-3">
+                <span className="text-sm flex-shrink-0 mt-0.5 font-bold" style={{ color: cfg.color }}>{cfg.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold mb-1" style={{ color: "var(--text-primary)" }}>{issue.title}</p>
+                  <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{issue.action}</p>
+                </div>
+              </div>
+            );
+          })}
+
+          {agentRecs.map((a) => (
+            <div key={a.id} className="px-5 py-3.5 flex items-start gap-3">
+              <span className="text-sm flex-shrink-0 mt-0.5">{TYPE_ICON[a.action_type] ?? "💡"}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold mb-1" style={{ color: "var(--text-primary)" }}>{issue.title}</p>
-                <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{issue.action}</p>
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{a.object_name}</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                    style={{ background: "#a5b4fc18", color: "#a5b4fc" }}>Agent · pending Slack</span>
+                </div>
+                <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{a.reason}</p>
               </div>
+              <span className="text-xs flex-shrink-0 mt-0.5" style={{ color: "var(--text-faint)" }}>{timeAgo(a.created_at)}</span>
             </div>
-          );
-        })}
-
-        {agentRecs.map((a) => (
-          <div key={a.id} className="px-5 py-3.5 flex items-start gap-3">
-            <span className="text-sm flex-shrink-0 mt-0.5">{TYPE_ICON[a.action_type] ?? "💡"}</span>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
-                <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{a.object_name}</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
-                  style={{ background: "#a5b4fc18", color: "#a5b4fc" }}>Agent · pending Slack</span>
-              </div>
-              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{a.reason}</p>
-            </div>
-            <span className="text-xs flex-shrink-0 mt-0.5" style={{ color: "var(--text-faint)" }}>{timeAgo(a.created_at)}</span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
