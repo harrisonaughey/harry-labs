@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import MetaAdsView from "./MetaAdsView";
 import GoogleAdsView from "./GoogleAdsView";
 import TikTokAdsView from "./TikTokAdsView";
+import AccountHealthPanel from "./AccountHealthPanel";
 
 type Props = { metaConnected: boolean; metaTokenError?: string | null; googleConnected: boolean; tiktokConnected: boolean };
 
@@ -239,6 +240,9 @@ export default function TrafficDashboard({ metaConnected, metaTokenError, google
           tiktokConnected={tiktokConnected}
         />
       )}
+
+      {/* Account Health — always shown in reporting section */}
+      <AccountHealthPanel />
 
       {/* Tab bar */}
       <div className="flex items-center gap-1 mb-6 p-1 rounded-lg w-fit"
