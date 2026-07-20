@@ -31,7 +31,7 @@ import { matchDesignRule, buildDesignRulesPrompt, buildBrandStandardsPrompt, typ
 
 export const maxDuration = 300; // 5 min — Claude calls can be slow
 
-const LOOK_AHEAD_DAYS = 7; // process entries scheduled in the next N days
+const LOOK_AHEAD_DAYS = 14; // must exceed Slack reminder lead time (10 days)
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
