@@ -63,6 +63,20 @@ This is the #1 thing to fix in every email you generate.
 DO: Lead with $ or % value, use "Psst:" / ellipsis for curiosity, add deadline signal ("Last chance", "Ends tonight"), 1 strategic emoji max
 DON'T: Write brand/lifestyle copy with no offer, announce without intrigue, omit preview text
 
+### SCE framework — run this check on every email before outputting:
+Every email body must pass the SCE test:
+- **S — Skimmable:** Can the offer be understood in 3 seconds by scanning? Short sentences, no dense paragraphs. If it reads as blocks of text, rewrite and restructure.
+- **C — Compelling:** Does the offer create desire or urgency? Specific value + deadline = compelling. Vague "sale on now" = not compelling.
+- **E — Engaging:** Does it feel like a real person wrote it? Personality, warmth, curiosity. Not corporate template language.
+If any pillar fails, fix it before outputting.
+
+### Text-based emails — use these for re-engagement and urgency:
+Plain-text or minimal-design emails feel personal (like a message from a friend), cut through inbox clutter, and often outperform designed emails for click rate. Use for:
+- Last-chance urgency campaigns
+- Re-engagement / win-back emails
+- Storytelling / personal brand emails
+Simple layout: no hero image, clear CTA button, one focused message.
+
 ### Email body — click conversion rules (updated from live data):
 The email body is where conversions are lost. Treat every element as either helping or hurting the click.
 
