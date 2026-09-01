@@ -20,20 +20,33 @@ function klaviyoHeaders() {
   };
 }
 
+const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+async function kFetch(input: RequestInfo, init?: RequestInit, retries = 4): Promise<any> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const res = await fetch(input, init);
+    if (res.status === 429) {
+      const wait = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s, 8s
+      console.warn(`[klaviyo-report] 429 throttled — retrying in ${wait}ms (attempt ${attempt + 1}/${retries})`);
+      await sleep(wait);
+      continue;
+    }
+    if (!res.ok) throw new Error(`Klaviyo ${res.status}: ${await res.text()}`);
+    return res.json();
+  }
+  throw new Error("Klaviyo rate limit exceeded after retries");
+}
+
 async function kGet(path: string) {
-  const res = await fetch(`${KLAVIYO_BASE}${path}`, { headers: klaviyoHeaders() });
-  if (!res.ok) throw new Error(`Klaviyo GET ${path} → ${res.status}: ${await res.text()}`);
-  return res.json();
+  return kFetch(`${KLAVIYO_BASE}${path}`, { headers: klaviyoHeaders() });
 }
 
 async function kPost(path: string, body: object) {
-  const res = await fetch(`${KLAVIYO_BASE}${path}`, {
+  return kFetch(`${KLAVIYO_BASE}${path}`, {
     method:  "POST",
     headers: klaviyoHeaders(),
     body:    JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`Klaviyo POST ${path} → ${res.status}: ${await res.text()}`);
-  return res.json();
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -212,9 +225,13 @@ export async function fetchMonthlyMetrics(year: number, month: number): Promise<
   const reportLabel  = `${MONTH_LABELS[month - 1]} ${year}`;
   const reportMonth  = `${year}-${pad(month)}`;
 
-  const [current, prevData, flows, listSize] = await Promise.all([
-    fetchCampaignMetrics(start, end),
-    fetchCampaignMetrics(prevStart, prevEnd),
+  // Serialize the two reporting calls to avoid Klaviyo's per-second rate limit,
+  // then fetch flows + list size in parallel (different endpoints, safe to batch).
+  const current  = await fetchCampaignMetrics(start, end);
+  await sleep(1200);
+  const prevData = await fetchCampaignMetrics(prevStart, prevEnd);
+  await sleep(1200);
+  const [flows, listSize] = await Promise.all([
     fetchFlowMetrics(start, end),
     fetchListSize(),
   ]);

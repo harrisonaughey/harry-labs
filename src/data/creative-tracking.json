@@ -192,15 +192,15 @@
       "id": "jenne-b02-1",
       "creator": "Jenne",
       "brief": "B02.1",
-      "version": "V1",
+      "version": "V2",
       "hook_concept": "Question Hook \u2014 Who Are You Really?",
       "hook_type": "curiosity_gap",
-      "audit_score": 73,
-      "audit_decision": "AMBER",
+      "audit_score": 35,
+      "audit_decision": "REJECT",
       "meta_status": "revision",
       "tiktok_status": "revision",
-      "hold_reason": "Duration 42.5s \u2014 over double the 20-22s spec. Strong raw footage exists (hook, kids gameplay, scoresheet close-up, reaction with dunce hat filter) but video must be cut to 20-22s before upload. Hook and content quality are solid \u2014 this is purely an editing task.",
-      "notes": "Hook: 'WHO ARE YOUR FRIENDS... REALLY?' \u2014 strong identity/curiosity gap, two-part delivery (man to camera + product shot). Body: young man unboxing, kids at round table playing, score sheet (real card types confirmed: name word, rhyme word visible on sheet), man in plaid shirt with dunce hat filter reaction. CTA: 'Find out who your friends really are.' End card shows 'picture word' deck (confirmed real card type — 2026-09-01). Audience score without length penalty would be ~82."
+      "hold_reason": "HARD RULE FAIL \u2014 2 auto-rejects: (1) Hard Rule 3: Opens on man standing holding Thinkle box to camera = static wide shot + talking head intro. Must open on genuine human emotion or action. (2) Hard Rule 1: 3 filming locations (grey apartment 1s / open-plan kitchen couch 8s / avocado painting living room 18s). Max 2 allowed. Also: all text orange with dark outline \u2014 change to white with drop shadow. Duration fixed (22.7s) \u2014 good. Recommendation: move 18s man-laughing frame to 1s as hook, cut to 2 locations max, change text to white.",
+      "notes": "Scored under new official Meta rubric (2026-09-01). Hard Rule 1 FAIL (3 locations) + Hard Rule 3 FAIL (static wide shot opener) = AUTO-REJECT. V2 structure: man holding Thinkle box to camera with WHO ARE YOUR FRIENDS... REALLY? (1s) \u2192 card fan on wooden table (3s) \u2192 mirror/kaleidoscope transition on card backs (5s) \u2192 open-plan kitchen couch scene with couple writing score sheets (8s) \u2192 score sheet close-up showing real name word + rhyme word columns (12s) \u2192 man in plaid shirt laughing with Find out who your friends really are CTA (18s, avocado painting room) \u2192 product end card name word/rapid word/picture word + thinkle.com.au (22s). End card clean. Duration fixed from 42.5s \u2192 22.7s. Move 18s laugh frame to 1s to fix hook opener."
     },
     {
       "id": "jenne-b02-2",
