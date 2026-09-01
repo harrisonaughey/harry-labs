@@ -1112,10 +1112,29 @@ export default function GoogleAdsView({ connected }: { connected: boolean }) {
       {error && (
         <div className="rounded-xl p-4 mb-5" style={{ background: "#ef444415", border: "1px solid #ef444440" }}>
           <p className="text-sm font-medium mb-1" style={{ color: "#ef4444" }}>Google Ads API Error</p>
-          <p className="text-xs font-mono" style={{ color: "#ef4444", opacity: 0.8 }}>{error}</p>
+          <p className="text-xs font-mono mb-2" style={{ color: "#ef4444", opacity: 0.8 }}>{error}</p>
+          {(error.includes("client secret") || error.includes("OAuth") || error.includes("invalid_client")) && (
+            <div className="space-y-1.5 pt-2" style={{ borderTop: "1px solid #ef444430" }}>
+              <p className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Fix: update OAuth credentials in Vercel env vars</p>
+              {[
+                { key: "GOOGLE_ADS_CLIENT_SECRET", hint: "From Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client Secrets" },
+                { key: "GOOGLE_ADS_REFRESH_TOKEN",  hint: "Re-run OAuth flow to get a fresh refresh token" },
+              ].map((v) => (
+                <div key={v.key} className="flex items-start gap-2 px-3 py-2 rounded-lg text-xs" style={{ background: "#ef444410", border: "1px solid #ef444420" }}>
+                  <code style={{ color: "#f87171", flexShrink: 0 }}>{v.key}</code>
+                  <span style={{ color: "var(--text-faint)" }}>{v.hint}</span>
+                </div>
+              ))}
+            </div>
+          )}
           {error.includes("not approved") && (
             <p className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
               Basic Access application in review — typically approved within 3 business days.
+            </p>
+          )}
+          {error.includes("Update GOOGLE_ADS_CUSTOMER_ID") && (
+            <p className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
+              Update <code className="px-1 rounded" style={{ background: "var(--bg-subtle)" }}>GOOGLE_ADS_CUSTOMER_ID</code> in Vercel with one of the accessible account IDs listed above.
             </p>
           )}
         </div>

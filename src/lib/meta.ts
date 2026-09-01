@@ -85,7 +85,7 @@ export async function getMetaAccountInsights(filter: DateFilter = { type: "prese
 
 // ─── Campaign list + insights + budgets ──────────────────────────────────────
 export async function getMetaCampaigns(filter: DateFilter = { type: "preset", preset: "last_30d" }) {
-  const insightFields = `spend,impressions,clicks,ctr,cpc,actions,action_values,frequency`;
+  const insightFields = `spend,impressions,reach,clicks,ctr,cpc,actions,action_values,frequency`;
   const insightParam  = filter.type === "preset"
     ? `insights.date_preset(${filter.preset}){${insightFields}}`
     : `insights.time_range(${JSON.stringify({ since: filter.since, until: filter.until })}){${insightFields}}`;
@@ -121,6 +121,7 @@ export async function getMetaCampaigns(filter: DateFilter = { type: "preset", pr
       bidStrategy:    c.bid_strategy ?? null,
       spend,
       impressions:    parseInt(ins.impressions ?? "0"),
+      reach:          parseInt(ins.reach       ?? "0"),
       clicks:         parseInt(ins.clicks      ?? "0"),
       ctr:            parseFloat(ins.ctr       ?? "0"),
       cpc:            parseFloat(ins.cpc       ?? "0"),

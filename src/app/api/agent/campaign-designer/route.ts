@@ -1,75 +1,26 @@
 /**
  * Campaign Designer Agent
  *
- * Reads upcoming content_calendar entries → generates email HTML via Claude →
- * creates a Klaviyo template + campaign draft → writes both IDs back to DB →
+ * Reads upcoming content_calendar entries → creates a Klaviyo campaign draft
+ * using the AI Template (no HTML generation) → writes IDs back to DB →
  * logs every action to agent_actions.
  *
- * Corrections vs. the original spec:
- * - Klaviyo's public REST API does NOT support embedding HTML directly in
- *   campaign-messages. The correct flow is:
- *     1. createTemplate() → Klaviyo template (holds the HTML)
- *     2. createCampaign() → Klaviyo campaign draft (holds subject/from/list)
- *   Both IDs are written back to content_calendar.
- * - brand_color_* on products falls back to Thinkle defaults if columns
- *   are not yet seeded.
+ * Audience is left empty so Harrison can select the segment manually in Klaviyo.
  */
 
-import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createCampaign } from "@/lib/klaviyo";
-import { detectEmailType, getTemplate, TEMPLATE_META } from "../email-build/templates";
-import { selectImages, buildImageCatalogueText } from "../email-build/imageAssets";
-import { EMAIL_SYSTEM_PROMPT } from "../email-build/systemPrompt";
-import {
-  fetchKlaviyoImages,
-  matchImagesToSlots,
-  buildKlaviyoImageCatalogue,
-} from "@/lib/klaviyo-images";
-import { matchDesignRule, buildDesignRulesPrompt, buildBrandStandardsPrompt, type DesignRule } from "@/lib/design-rules";
 
-export const maxDuration = 300; // 5 min — Claude calls can be slow
+export const maxDuration = 60;
 
-const LOOK_AHEAD_DAYS = 14; // must exceed Slack reminder lead time (10 days)
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const LOOK_AHEAD_DAYS = 14;
 
 function db() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function parseHtml(raw: string): string {
-  const m = raw.match(/```html\s*([\s\S]*?)```/i);
-  return m ? m[1].trim() : "";
-}
-
-function parseSubject(raw: string): string {
-  const block = raw.match(/## Subject Line(?:\s*Variants?)?\s*([\s\S]*?)(?=\n## |$)/i)?.[1] ?? "";
-
-  const candidates = block
-    .split("\n")
-    .filter((l) => /^[\d\-\*•]/.test(l.trim()))
-    .map((l) => {
-      let s = l.replace(/^[\d\.\-\*•]+\s*/, "");
-      s = s.replace(/\*\*(.*?)\*\*/g, "$1");
-      s = s.replace(/\s*\(\d+\s*chars?\).*$/i, "");
-      s = s.replace(/\s*—\s*(Primary|Secondary|Urgency|Curiosity|Offer|Deadline).*$/i, "");
-      s = s.replace(/\[.*?\]/g, "");
-      return s.trim();
-    })
-    .filter((s) => s.length > 0 && s.length <= 80);
-
-  return candidates[0] ?? "";
-}
-
-function parsePreviewText(raw: string): string {
-  return (raw.match(/## Preview Text\s*([\s\S]*?)(?=\n## |$)/i)?.[1] ?? "").trim().split("\n")[0].trim();
 }
 
 // ─── Core agent logic ─────────────────────────────────────────────────────────
@@ -83,9 +34,9 @@ export async function runAgent(storeId?: string) {
   // 1. Fetch upcoming entries that haven't been designed yet (idempotent)
   let query = supabase
     .from("content_calendar")
-    .select("*, products(id,title)")
+    .select("*")
     .is("klaviyo_campaign_id", null)
-    .neq("status", "generating") // skip anything already in-flight
+    .neq("status", "generating")
     .lte("send_at", horizon.toISOString())
     .order("send_at", { ascending: true });
 
@@ -94,22 +45,8 @@ export async function runAgent(storeId?: string) {
   const { data: entries, error: fetchErr } = await query;
   if (fetchErr) throw new Error(`content_calendar fetch: ${fetchErr.message}`);
 
-  // 2. No-op if nothing to process
   if (!entries || entries.length === 0) {
     return { processed: 0, skipped: 0, errors: 0, message: "No upcoming entries to design — nothing to do." };
-  }
-
-  // 2b. Fetch design rules once for the whole run
-  let designRules: DesignRule[] = [];
-  try {
-    const { data: rulesData } = await supabase
-      .from("campaign_design_rules")
-      .select("*")
-      .eq("is_active", true)
-      .order("sort_order", { ascending: true });
-    designRules = (rulesData ?? []) as DesignRule[];
-  } catch (e) {
-    console.warn("[campaign-designer] Could not fetch design rules:", e);
   }
 
   const results = { processed: 0, skipped: 0, errors: 0, entries: [] as any[] };
@@ -118,131 +55,39 @@ export async function runAgent(storeId?: string) {
     const entryId = entry.id as string;
     const sid = (entry.store_id ?? storeId) as string;
 
-    // Mark as generating (prevents double-processing on concurrent runs)
     await supabase
       .from("content_calendar")
       .update({ status: "generating", updated_at: new Date().toISOString() })
       .eq("id", entryId);
 
     try {
-      // 3. Build brand context from linked product (fallback to Thinkle brand colours)
-      const product        = entry.products as any;
-      const productTitle   = product?.title ?? "Thinkle";
-
-      const brief = entry.brief
-        ? entry.brief
-        : `${entry.name}. CTA URL: ${entry.destination_url ?? "https://thinkle.com.au"}`;
-
-      // 4. Match design rule + select template type
-      //    Priority: matched rule template_type > manual override > auto-detect
-      const matchedRule = matchDesignRule(entry.name, brief, designRules);
-
-      type EmailType = keyof typeof TEMPLATE_META;
-      const VALID_TYPES = new Set(Object.keys(TEMPLATE_META));
-      const resolvedType = matchedRule?.template_type || entry.template_type;
-      const emailType: EmailType =
-        resolvedType && VALID_TYPES.has(resolvedType)
-          ? (resolvedType as EmailType)
-          : detectEmailType(brief);
-      const tmplMeta    = TEMPLATE_META[emailType];
-      const tmplHtml    = getTemplate(emailType);
-
-      // Prefer Klaviyo image library; fall back to Drive
-      const klaviyoImages = await fetchKlaviyoImages();
-      let imageCat: string;
-      if (klaviyoImages.length > 0) {
-        const matched = matchImagesToSlots(klaviyoImages, emailType, brief);
-        imageCat = buildKlaviyoImageCatalogue(matched, emailType);
-      } else {
-        imageCat = buildImageCatalogueText(selectImages(brief));
-      }
-
-      // Brand standards + design rule are ALWAYS injected — Thinkle colours,
-      // logo, fonts, and performance best-practices are applied to every email.
-      const designBlock = matchedRule
-        ? buildDesignRulesPrompt(matchedRule)
-        : buildBrandStandardsPrompt();
-
-      const userMessage = [
-        `Campaign name: ${entry.name}`,
-        entry.list_id ? `Target Klaviyo list ID: ${entry.list_id}` : null,
-        entry.send_at
-          ? `Send date: ${new Date(entry.send_at).toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}`
-          : null,
-        entry.destination_url ? `CTA destination URL: ${entry.destination_url}` : null,
-        `Product: ${productTitle}`,
-        ``,
-        `Brief: ${brief}`,
-        ``,
-        // Brand standards + design rule always injected BEFORE template guidance
-        designBlock,
-        ``,
-        `## Email type selected`,
-        `Based on ${matchedRule ? `the matched design rule (${matchedRule.name})` : "this brief"}, the system has selected: **${tmplMeta.name}**`,
-        `Best for: ${tmplMeta.bestFor}`,
-        `Performance benchmark: ${tmplMeta.performanceBenchmark}`,
-        ``,
-        imageCat,
-        ``,
-        `## HTML template to use`,
-        `Start with this template and fill in all {{PLACEHOLDER}} tokens with copy, URLs, and image URLs from the catalogue above.`,
-        `Do NOT change the table structure or inline CSS — only replace the placeholder tokens and Klaviyo merge tags.`,
-        ``,
-        tmplHtml,
-      ]
-        .filter((l): l is string => l !== null)
-        .join("\n");
-
-      // 5. Call Claude (non-streaming — background agent)
-      const msg = await anthropic.messages.create({
-        model: "claude-opus-4-7",
-        max_tokens: 8192,
-        system: [{ type: "text", text: EMAIL_SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
-        messages: [{ role: "user", content: userMessage }],
-      });
-
-      const raw = msg.content
-        .filter((b) => b.type === "text")
-        .map((b) => (b as { type: "text"; text: string }).text)
-        .join("");
-
-      const html        = parseHtml(raw);
-      const subject     = parseSubject(raw);
-      const previewText = parsePreviewText(raw);
-
-      if (!html) throw new Error("Claude response contained no HTML block");
-
-      // 6. Create Klaviyo template + campaign — no listId, uses all 6 max-reach audiences
+      // Create Klaviyo campaign using AI Template — audience left empty for manual selection
       const { campaignId, templateId } = await createCampaign({
         name:        entry.name,
-        subject:     subject || entry.name,
-        fromEmail:   "hello@thinkle.com.au",
+        subject:     entry.name,
+        fromEmail:   "info@thinkle.com.au",
         fromName:    "Thinkle",
-        html,
-        previewText,
+        audienceIds: [],
         scheduledAt: entry.send_at ?? undefined,
       });
 
-      // 7. Write both IDs back to content_calendar (idempotent guard for next run)
       await supabase
         .from("content_calendar")
         .update({
           klaviyo_campaign_id: campaignId,
           klaviyo_template_id: templateId,
-          status: "done",
-          updated_at: new Date().toISOString(),
+          status:              "done",
+          updated_at:          new Date().toISOString(),
         })
         .eq("id", entryId);
 
-      // 8. Log to agent_actions
       await supabase.from("agent_actions").insert({
         store_id:            sid,
         agent_name:          "campaign-designer",
         calendar_entry_id:   entryId,
         klaviyo_campaign_id: campaignId,
         klaviyo_template_id: templateId,
-        prompt_snapshot:     `[${emailType}${matchedRule ? ` / rule:${matchedRule.name}` : ""}] ${brief}`.slice(0, 2000),
-        response_snapshot:   raw.slice(0, 4000),
+        prompt_snapshot:     entry.name.slice(0, 2000),
         status:              "success",
       });
 
@@ -250,25 +95,23 @@ export async function runAgent(storeId?: string) {
       results.entries.push({ id: entryId, name: entry.name, campaignId, templateId, status: "done" });
 
     } catch (err: any) {
-      const msg = err?.message ?? "Unknown error";
+      const message = err?.message ?? "Unknown error";
 
-      // Mark entry as error
       await supabase
         .from("content_calendar")
-        .update({ status: "error", error_message: msg, updated_at: new Date().toISOString() })
+        .update({ status: "error", error_message: message, updated_at: new Date().toISOString() })
         .eq("id", entryId);
 
-      // Log failure
       await supabase.from("agent_actions").insert({
         store_id:          sid,
         agent_name:        "campaign-designer",
         calendar_entry_id: entryId,
         status:            "error",
-        error_message:     msg,
+        error_message:     message,
       });
 
       results.errors++;
-      results.entries.push({ id: entryId, name: entry.name, status: "error", error: msg });
+      results.entries.push({ id: entryId, name: entry.name, status: "error", error: message });
     }
   }
 

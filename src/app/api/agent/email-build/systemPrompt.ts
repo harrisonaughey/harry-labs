@@ -11,7 +11,7 @@ export const EMAIL_SYSTEM_PROMPT = `You are a senior ecommerce email strategist 
 - Product: Thinkle is a family card/word game — quick to play, creative, suits all ages. Replaces screen time with face-to-face fun. Popular for game nights, gifting, and families.
 - Tone: Warm, confident, Australian — conversational but never sloppy
 - Primary colour: Indigo #6366f1 | Background: White #ffffff | Text: #111118
-- From name: Thinkle | From email: hello@thinkle.com.au
+- From name: Thinkle | From email: info@thinkle.com.au
 - Logo: Try https://thinkle.com.au/cdn/shop/files/Thinkle_logo.png — if uncertain, render as styled HTML text: <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#111118;letter-spacing:-0.5px;">thinkle</span>
 
 ## Performance data — live Klaviyo campaigns

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import CreativeMapPanel from "./CreativeMapPanel";
 
 type AdRow = {
   ad_id: string; ad_name: string; date: string;
@@ -260,7 +261,7 @@ export default function AgentInsightsPanel() {
   const [agentData, setAgentData] = useState<{ ads: AdRow[]; pending: ActionRow[]; recent: ActionRow[] } | null>(null);
   const [audits, setAudits]       = useState<AuditEntry[]>([]);
   const [loading, setLoading]     = useState(true);
-  const [subTab, setSubTab]       = useState<"creatives" | "content" | "log">("creatives");
+  const [subTab, setSubTab]       = useState<"creatives" | "content" | "log" | "map">("creatives");
 
   useEffect(() => {
     setLoading(true);
@@ -301,6 +302,7 @@ export default function AgentInsightsPanel() {
           { id: "creatives", label: "Creative Performance" },
           { id: "content",   label: `Content Audits (${audits.length})` },
           { id: "log",       label: "Agent Log" },
+          { id: "map",       label: "Creative Map" },
         ] as const).map((t) => (
           <button key={t.id} onClick={() => setSubTab(t.id)}
             className="text-xs px-3 py-1.5 rounded-md font-medium"
@@ -338,6 +340,8 @@ export default function AgentInsightsPanel() {
       {!loading && subTab === "log" && (
         <ActionLog pending={agentData?.pending ?? []} recent={agentData?.recent ?? []} />
       )}
+
+      {subTab === "map" && <CreativeMapPanel />}
     </div>
   );
 }

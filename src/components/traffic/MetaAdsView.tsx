@@ -727,18 +727,18 @@ function CampaignTable({
                 const asFreq = as.frequency > 3;
                 return (
                   <Fragment key={as.id}>
-                    <tr style={{ background: "#0d0d18", borderTop: "1px solid var(--border-subtle)" }}>
-                      <td className="px-3 py-2.5">
+                    <tr style={{ background: "var(--bg-card-inner)", borderTop: "1px solid var(--border)" }}>
+                      <td className="px-3 py-2.5" style={{ borderLeft: "2px solid #6366f160" }}>
                         <div className="flex justify-end">
                           <button onClick={() => onToggleAds(as.id)}
                             className="w-4 h-4 flex items-center justify-center rounded text-xs"
-                            style={{ color: "#818cf8", background: "#6366f110", transform: asOpen ? "rotate(90deg)" : undefined, transition: "transform 0.15s" }}>
+                            style={{ color: "#818cf8", background: "#6366f115", transform: asOpen ? "rotate(90deg)" : undefined, transition: "transform 0.15s" }}>
                             ▸
                           </button>
                         </div>
                       </td>
                       <td className="px-3 py-2.5 pl-6">
-                        <p className="truncate" style={{ color: "var(--text-secondary)", fontSize: 11 }} title={as.name}>{as.name}</p>
+                        <p className="truncate font-medium" style={{ color: "var(--text-secondary)", fontSize: 11 }} title={as.name}>{as.name}</p>
                       </td>
                       {manage && (
                         <td className="px-3 py-2.5">
@@ -770,20 +770,20 @@ function CampaignTable({
                     </tr>
 
                     {asOpen && ads === "loading" && (
-                      <tr><td colSpan={colSpan} className="px-12 py-2 text-xs" style={{ color: "var(--text-faint)", background: "#080810" }}>Loading ads…</td></tr>
+                      <tr><td colSpan={colSpan} className="px-12 py-2 text-xs" style={{ color: "var(--text-faint)", background: "var(--bg-subtle)", borderLeft: "3px solid #6366f130" }}>Loading ads…</td></tr>
                     )}
 
                     {asOpen && Array.isArray(ads) && ads.map((ad: any) => {
                       const sAd    = STATUS_STYLE[ad.status] ?? { bg: "#6b728020", text: "var(--text-secondary)" };
                       const fatigue = ad.frequency > 3;
                       return (
-                        <tr key={ad.id} style={{ background: "#080810", borderTop: "1px solid #1a1a28" }}>
-                          <td className="px-3 py-2" />
+                        <tr key={ad.id} style={{ background: "var(--bg-subtle)", borderTop: "1px solid var(--border-subtle)" }}>
+                          <td className="px-3 py-2" style={{ borderLeft: "3px solid #6366f130" }} />
                           <td className="px-3 py-2 pl-10" colSpan={manage ? 2 : 1}>
                             <div className="flex items-center gap-2">
                               {ad.thumbnailUrl
                                 ? <img src={ad.thumbnailUrl} alt="" className="w-7 h-7 rounded object-cover flex-shrink-0" style={{ border: "1px solid var(--border)" }} />
-                                : <div className="w-7 h-7 rounded flex-shrink-0 flex items-center justify-center" style={{ background: "#1a1a28", color: "var(--text-faint)", fontSize: 12, border: "1px solid var(--border)" }}>🖼</div>
+                                : <div className="w-7 h-7 rounded flex-shrink-0 flex items-center justify-center" style={{ background: "var(--bg-card)", color: "var(--text-faint)", fontSize: 12, border: "1px solid var(--border)" }}>🖼</div>
                               }
                               <div className="min-w-0">
                                 <p className="truncate" style={{ color: "var(--text-secondary)", fontSize: 11 }} title={ad.name}>{ad.name}</p>
@@ -812,6 +812,220 @@ function CampaignTable({
   );
 }
 
+// ─── Reporting-only campaign table (full ecom columns, drill-down) ────────────
+function roasColor(r: number) {
+  return r >= 2 ? "#10b981" : r >= 1 ? "#fbbf24" : r > 0 ? "#ef4444" : "var(--text-faint)";
+}
+
+const RPT_COLS   = ["SPEND", "REVENUE", "ROAS", "CPA", "CONV", "IMPR", "FREQ", "CLICKS", "CTR", "CPC"];
+const RPT_WIDTHS = [82, 82, 66, 72, 54, 72, 60, 64, 56, 66];
+
+function ReportCampaignTable({
+  campaigns, expanded, adExpanded, onToggleAdsets, onToggleAds,
+}: {
+  campaigns: any[];
+  expanded:    Record<string, any[] | "loading">;
+  adExpanded:  Record<string, any[] | "loading">;
+  onToggleAdsets: (id: string) => void;
+  onToggleAds:    (id: string) => void;
+}) {
+  if (campaigns.length === 0)
+    return <div className="py-12 text-center text-sm" style={{ color: "var(--text-faint)" }}>No campaigns match the current filter</div>;
+
+  const COLS = 12;
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-xs" style={{ minWidth: 920, tableLayout: "fixed" }}>
+        <colgroup>
+          <col style={{ width: 36 }} />
+          <col style={{ width: "22%" }} />
+          {RPT_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
+        </colgroup>
+        <thead>
+          <tr style={{ color: "var(--text-faint)", borderBottom: "1px solid var(--border-subtle)" }}>
+            <th className="px-3 py-3" />
+            <th className="px-3 py-3 text-left font-medium uppercase tracking-wider">Campaign</th>
+            {RPT_COLS.map((h) => <th key={h} className="px-3 py-3 text-left font-medium uppercase tracking-wider">{h}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {campaigns.map((c: any) => {
+            const s      = STATUS_STYLE[c.status] ?? { bg: "#6b728020", text: "var(--text-secondary)" };
+            const isOpen = !!expanded[c.id];
+            const adsets = expanded[c.id];
+            const cpa    = c.purchases > 0 ? c.spend / c.purchases : 0;
+            const freqHi = c.frequency > 3.5;
+            return (
+              <Fragment key={c.id}>
+                <tr style={{ borderTop: "1px solid var(--border-subtle)", background: isOpen ? "#ffffff04" : undefined }}
+                  className="hover:bg-white/[0.015] transition-colors">
+                  <td className="px-3 py-3">
+                    <button onClick={() => onToggleAdsets(c.id)}
+                      className="w-5 h-5 flex items-center justify-center rounded text-xs"
+                      style={{ color: "#a5b4fc", background: "#6366f115", transform: isOpen ? "rotate(90deg)" : undefined, transition: "transform 0.15s" }}>▸</button>
+                  </td>
+                  <td className="px-3 py-3">
+                    <p className="font-medium truncate" style={{ color: "var(--text-primary)" }} title={c.name}>{c.name}</p>
+                    <span className="text-xs" style={{ color: s.text }}>{c.status.toLowerCase()}</span>
+                  </td>
+                  <td className="px-3 py-3 font-medium" style={{ color: "var(--text-primary)" }}>{fmt(c.spend)}</td>
+                  <td className="px-3 py-3" style={{ color: "var(--text-secondary)" }}>{c.purchaseValue > 0 ? fmt(c.purchaseValue) : "—"}</td>
+                  <td className="px-3 py-3"><span style={{ color: roasColor(c.roas) }}>{c.roas > 0 ? `${c.roas.toFixed(2)}×` : "—"}</span></td>
+                  <td className="px-3 py-3" style={{ color: cpa > 30 ? "#ef4444" : cpa > 0 ? "#fbbf24" : "var(--text-faint)" }}>{cpa > 0 ? fmt(cpa) : "—"}</td>
+                  <td className="px-3 py-3" style={{ color: "var(--text-secondary)" }}>{c.purchases}</td>
+                  <td className="px-3 py-3" style={{ color: "var(--text-secondary)" }}>{c.impressions > 0 ? (c.impressions / 1000).toFixed(1) + "K" : "—"}</td>
+                  <td className="px-3 py-3" style={{ color: freqHi ? "#fbbf24" : "var(--text-secondary)" }}>{c.frequency > 0 ? `${c.frequency.toFixed(1)}×` : "—"}{freqHi ? " ⚠" : ""}</td>
+                  <td className="px-3 py-3" style={{ color: "var(--text-secondary)" }}>{c.clicks.toLocaleString()}</td>
+                  <td className="px-3 py-3" style={{ color: "var(--text-secondary)" }}>{c.ctr.toFixed(2)}%</td>
+                  <td className="px-3 py-3" style={{ color: "var(--text-secondary)" }}>{c.cpc > 0 ? fmt(c.cpc) : "—"}</td>
+                </tr>
+
+                {isOpen && adsets === "loading" && (
+                  <tr><td colSpan={COLS} className="px-8 py-2 text-xs" style={{ color: "var(--text-faint)", background: "var(--bg-card-inner)" }}>Loading ad sets…</td></tr>
+                )}
+
+                {isOpen && Array.isArray(adsets) && adsets.map((as: any) => {
+                  const sAs    = STATUS_STYLE[as.status] ?? { bg: "#6b728020", text: "var(--text-secondary)" };
+                  const asOpen = !!adExpanded[as.id];
+                  const ads    = adExpanded[as.id];
+                  const asCpa  = as.purchases > 0 ? as.spend / as.purchases : 0;
+                  const asFreq = as.frequency > 3;
+                  return (
+                    <Fragment key={as.id}>
+                      <tr style={{ background: "var(--bg-card-inner)", borderTop: "1px solid var(--border)" }}>
+                        <td className="px-3 py-2.5" style={{ borderLeft: "2px solid #6366f160" }}>
+                          <div className="flex justify-end">
+                            <button onClick={() => onToggleAds(as.id)}
+                              className="w-4 h-4 flex items-center justify-center rounded text-xs"
+                              style={{ color: "#818cf8", background: "#6366f115", transform: asOpen ? "rotate(90deg)" : undefined, transition: "transform 0.15s" }}>▸</button>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2.5 pl-6">
+                          <p className="truncate font-medium" style={{ color: "var(--text-secondary)", fontSize: 11 }} title={as.name}>{as.name}</p>
+                          <span style={{ color: sAs.text, fontSize: 10 }}>{as.status.toLowerCase()}</span>
+                        </td>
+                        <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{fmt(as.spend)}</td>
+                        <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{as.purchaseValue > 0 ? fmt(as.purchaseValue) : "—"}</td>
+                        <td className="px-3 py-2.5" style={{ fontSize: 11 }}><span style={{ color: roasColor(as.roas) }}>{as.roas > 0 ? `${as.roas.toFixed(2)}×` : "—"}</span></td>
+                        <td className="px-3 py-2.5" style={{ color: asCpa > 30 ? "#ef4444" : asCpa > 0 ? "#fbbf24" : "var(--text-faint)", fontSize: 11 }}>{asCpa > 0 ? fmt(asCpa) : "—"}</td>
+                        <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{as.purchases}</td>
+                        <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{as.impressions > 0 ? (as.impressions / 1000).toFixed(1) + "K" : "—"}</td>
+                        <td className="px-3 py-2.5" style={{ color: asFreq ? "#fbbf24" : "var(--text-secondary)", fontSize: 11 }}>{as.frequency > 0 ? `${as.frequency.toFixed(1)}×` : "—"}{asFreq ? " ⚠" : ""}</td>
+                        <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{as.clicks.toLocaleString()}</td>
+                        <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{as.ctr.toFixed(2)}%</td>
+                        <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{as.cpc > 0 ? fmt(as.cpc) : "—"}</td>
+                      </tr>
+
+                      {asOpen && ads === "loading" && (
+                        <tr><td colSpan={COLS} className="px-12 py-2 text-xs" style={{ color: "var(--text-faint)", background: "var(--bg-subtle)", borderLeft: "3px solid #6366f130" }}>Loading ads…</td></tr>
+                      )}
+
+                      {asOpen && Array.isArray(ads) && ads.map((ad: any) => {
+                        const adCpa  = ad.purchases > 0 ? ad.spend / ad.purchases : 0;
+                        const adFreq = ad.frequency > 3;
+                        return (
+                          <tr key={ad.id} style={{ background: "var(--bg-subtle)", borderTop: "1px solid var(--border-subtle)" }}>
+                            <td className="px-3 py-2" style={{ borderLeft: "3px solid #6366f130" }} />
+                            <td className="px-3 py-2 pl-10">
+                              <div className="flex items-center gap-2">
+                                {ad.thumbnailUrl
+                                  ? <img src={ad.thumbnailUrl} alt="" className="w-7 h-7 rounded object-cover flex-shrink-0" style={{ border: "1px solid var(--border)" }} />
+                                  : <div className="w-7 h-7 rounded flex-shrink-0 flex items-center justify-center" style={{ background: "var(--bg-card-inner)", color: "var(--text-faint)", fontSize: 12, border: "1px solid var(--border)" }}>🖼</div>
+                                }
+                                <div className="min-w-0">
+                                  <p className="truncate" style={{ color: "var(--text-secondary)", fontSize: 11 }} title={ad.name}>{ad.name}</p>
+                                  {adFreq && <p style={{ color: "#ef4444", fontSize: 10 }}>⚡ fatigue</p>}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-3 py-2" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{fmt(ad.spend)}</td>
+                            <td className="px-3 py-2" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{ad.purchaseValue > 0 ? fmt(ad.purchaseValue) : "—"}</td>
+                            <td className="px-3 py-2" style={{ fontSize: 11 }}><span style={{ color: roasColor(ad.roas) }}>{ad.roas > 0 ? `${ad.roas.toFixed(2)}×` : "—"}</span></td>
+                            <td className="px-3 py-2" style={{ color: adCpa > 30 ? "#ef4444" : adCpa > 0 ? "#fbbf24" : "var(--text-faint)", fontSize: 11 }}>{adCpa > 0 ? fmt(adCpa) : "—"}</td>
+                            <td className="px-3 py-2" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{ad.purchases}</td>
+                            <td className="px-3 py-2" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{ad.impressions > 0 ? (ad.impressions / 1000).toFixed(1) + "K" : "—"}</td>
+                            <td className="px-3 py-2" style={{ color: adFreq ? "#ef4444" : "var(--text-secondary)", fontSize: 11 }}>{ad.frequency > 0 ? `${ad.frequency.toFixed(1)}×` : "—"}{adFreq ? " ⚡" : ""}</td>
+                            <td className="px-3 py-2" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{ad.clicks.toLocaleString()}</td>
+                            <td className="px-3 py-2" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{ad.ctr.toFixed(2)}%</td>
+                            <td className="px-3 py-2" style={{ color: "var(--text-secondary)", fontSize: 11 }}>{ad.cpc > 0 ? fmt(ad.cpc) : "—"}</td>
+                          </tr>
+                        );
+                      })}
+                    </Fragment>
+                  );
+                })}
+              </Fragment>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ─── Flat entity table (account-level adsets or ads view) ─────────────────────
+const FLAT_COLS = ["SPEND", "REVENUE", "ROAS", "CPA", "CONV", "IMPR", "FREQ", "CLICKS", "CTR", "CPC"];
+
+function FlatTable({ items, type, loading }: { items: any[] | null; type: "adset" | "ad"; loading: boolean }) {
+  if (loading || items === null)
+    return <div className="py-12 text-center text-sm" style={{ color: "var(--text-faint)" }}>Loading…</div>;
+  if (items.length === 0)
+    return <div className="py-12 text-center text-sm" style={{ color: "var(--text-faint)" }}>No data for this date range</div>;
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-xs" style={{ minWidth: type === "ad" ? 960 : 920, tableLayout: "fixed" }}>
+        <colgroup>
+          {type === "ad" && <col style={{ width: 44 }} />}
+          <col style={{ width: "22%" }} />
+          {RPT_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
+        </colgroup>
+        <thead>
+          <tr style={{ color: "var(--text-faint)", borderBottom: "1px solid var(--border-subtle)" }}>
+            {type === "ad" && <th className="px-3 py-3" />}
+            <th className="px-3 py-3 text-left font-medium uppercase tracking-wider">{type === "adset" ? "Ad Set" : "Ad"}</th>
+            {FLAT_COLS.map((h) => <th key={h} className="px-3 py-3 text-left font-medium uppercase tracking-wider">{h}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item: any) => {
+            const s    = STATUS_STYLE[item.status] ?? { bg: "#6b728020", text: "var(--text-secondary)" };
+            const cpa  = item.purchases > 0 ? item.spend / item.purchases : 0;
+            const freq = item.frequency > 3;
+            return (
+              <tr key={item.id} style={{ borderTop: "1px solid var(--border-subtle)" }}
+                className="hover:bg-white/[0.015] transition-colors">
+                {type === "ad" && (
+                  <td className="px-3 py-2.5">
+                    {item.thumbnailUrl
+                      ? <img src={item.thumbnailUrl} alt="" className="w-7 h-7 rounded object-cover" style={{ border: "1px solid var(--border)" }} />
+                      : <div className="w-7 h-7 rounded flex items-center justify-center" style={{ background: "var(--bg-card-inner)", color: "var(--text-faint)", fontSize: 12, border: "1px solid var(--border)" }}>🖼</div>
+                    }
+                  </td>
+                )}
+                <td className="px-3 py-2.5">
+                  <p className="font-medium truncate" style={{ color: "var(--text-primary)" }} title={item.name}>{item.name}</p>
+                  <span style={{ color: s.text, fontSize: 10 }}>{item.status.toLowerCase()}</span>
+                </td>
+                <td className="px-3 py-2.5 font-medium" style={{ color: "var(--text-primary)" }}>{fmt(item.spend)}</td>
+                <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)" }}>{item.purchaseValue > 0 ? fmt(item.purchaseValue) : "—"}</td>
+                <td className="px-3 py-2.5"><span style={{ color: roasColor(item.roas) }}>{item.roas > 0 ? `${item.roas.toFixed(2)}×` : "—"}</span></td>
+                <td className="px-3 py-2.5" style={{ color: cpa > 30 ? "#ef4444" : cpa > 0 ? "#fbbf24" : "var(--text-faint)" }}>{cpa > 0 ? fmt(cpa) : "—"}</td>
+                <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)" }}>{item.purchases}</td>
+                <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)" }}>{item.impressions > 0 ? (item.impressions / 1000).toFixed(1) + "K" : "—"}</td>
+                <td className="px-3 py-2.5" style={{ color: freq ? "#fbbf24" : "var(--text-secondary)" }}>{item.frequency > 0 ? `${item.frequency.toFixed(1)}×` : "—"}{freq ? " ⚠" : ""}</td>
+                <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)" }}>{item.clicks.toLocaleString()}</td>
+                <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)" }}>{item.ctr.toFixed(2)}%</td>
+                <td className="px-3 py-2.5" style={{ color: "var(--text-secondary)" }}>{item.cpc > 0 ? fmt(item.cpc) : "—"}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // ─── Main view ────────────────────────────────────────────────────────────────
 export default function MetaAdsView({ connected }: { connected: boolean }) {
   const [innerTab,   setInnerTab]   = useState<InnerTab>("reporting");
@@ -823,6 +1037,12 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
 
   const [expanded,   setExpanded]   = useState<Record<string, any[] | "loading">>({});
   const [adExpanded, setAdExpanded] = useState<Record<string, any[] | "loading">>({});
+
+  const [viewMode,     setViewMode]     = useState<"campaigns" | "adsets" | "ads">("campaigns");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "paused">("all");
+  const [flatAdsets,   setFlatAdsets]   = useState<any[] | null>(null);
+  const [flatAds,      setFlatAds]      = useState<any[] | null>(null);
+  const [flatLoading,  setFlatLoading]  = useState(false);
 
   useEffect(() => { setGoals(readGoals()); }, []);
 
@@ -842,6 +1062,8 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => { setFlatAdsets(null); setFlatAds(null); }, [dateParam]);
+
   async function toggleAdsets(id: string) {
     if (expanded[id]) { setExpanded((p) => { const n = { ...p }; delete n[id]; return n; }); return; }
     setExpanded((p) => ({ ...p, [id]: "loading" }));
@@ -858,6 +1080,32 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
       const j = await fetch(`/api/meta/ads?adsetId=${id}&${dateParam}`).then((r) => r.json());
       setAdExpanded((p) => ({ ...p, [id]: j.ads ?? [] }));
     } catch { setAdExpanded((p) => ({ ...p, [id]: [] })); }
+  }
+
+  async function loadFlatAdsets() {
+    if (flatAdsets !== null) return;
+    setFlatLoading(true);
+    try {
+      const j = await fetch(`/api/meta/adsets?account=true&${dateParam}`).then((r) => r.json());
+      setFlatAdsets(j.adsets ?? []);
+    } catch { setFlatAdsets([]); }
+    finally { setFlatLoading(false); }
+  }
+
+  async function loadFlatAds() {
+    if (flatAds !== null) return;
+    setFlatLoading(true);
+    try {
+      const j = await fetch(`/api/meta/ads?account=true&${dateParam}`).then((r) => r.json());
+      setFlatAds(j.ads ?? []);
+    } catch { setFlatAds([]); }
+    finally { setFlatLoading(false); }
+  }
+
+  function handleViewMode(mode: "campaigns" | "adsets" | "ads") {
+    setViewMode(mode);
+    if (mode === "adsets") loadFlatAdsets();
+    if (mode === "ads")    loadFlatAds();
   }
 
   async function toggleStatus(entityId: string, currentStatus: string, entityName: string, entityType: string) {
@@ -978,21 +1226,79 @@ export default function MetaAdsView({ connected }: { connected: boolean }) {
           <BreakdownPanel type="placement"   dateParam={dateParam} />
           <BreakdownPanel type="demographic" dateParam={dateParam} />
 
-          <div className="rounded-xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
-            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--border)" }}>
-              <div className="flex items-center gap-3">
-                <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Campaigns</h2>
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#1e1e30", color: "var(--text-muted)" }}>{campaigns.length}</span>
+          {(() => {
+            const filteredCampaigns = campaigns.filter((c: any) =>
+              statusFilter === "all"    ? true :
+              statusFilter === "active" ? c.status === "ACTIVE" :
+              c.status === "PAUSED"
+            );
+            const flatItems = (viewMode === "adsets" ? (flatAdsets ?? []) : (flatAds ?? [])).filter((i: any) =>
+              statusFilter === "all"    ? true :
+              statusFilter === "active" ? i.status === "ACTIVE" :
+              i.status === "PAUSED"
+            );
+            const itemCount = viewMode === "campaigns" ? filteredCampaigns.length : flatItems.length;
+
+            return (
+              <div className="rounded-xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
+                <div className="flex items-center gap-3 px-5 py-3.5 flex-wrap" style={{ borderBottom: "1px solid var(--border)" }}>
+                  <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                    {viewMode === "campaigns" ? "Campaigns" : viewMode === "adsets" ? "Ad Sets" : "Ads"}
+                  </h2>
+                  <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "#1e1e30", color: "var(--text-muted)" }}>{itemCount}</span>
+
+                  <div className="ml-auto flex items-center gap-2">
+                    {/* Status filter */}
+                    <div className="flex items-center p-0.5 rounded-lg gap-0.5" style={{ background: "var(--bg-subtle)" }}>
+                      {(["all", "active", "paused"] as const).map((f) => (
+                        <button key={f} onClick={() => setStatusFilter(f)}
+                          className="text-xs px-2.5 py-1 rounded-md font-medium"
+                          style={{
+                            background: statusFilter === f ? "#1e1e30" : "transparent",
+                            color: statusFilter === f
+                              ? f === "active" ? "#10b981" : f === "paused" ? "#fbbf24" : "#a5b4fc"
+                              : "var(--text-muted)",
+                          }}>
+                          {f === "all" ? "All" : f === "active" ? "Live" : "Paused"}
+                        </button>
+                      ))}
+                    </div>
+                    {/* View mode */}
+                    <div className="flex items-center p-0.5 rounded-lg gap-0.5" style={{ background: "var(--bg-subtle)" }}>
+                      {(["campaigns", "adsets", "ads"] as const).map((v) => (
+                        <button key={v} onClick={() => handleViewMode(v)}
+                          className="text-xs px-2.5 py-1 rounded-md font-medium"
+                          style={{
+                            background: viewMode === v ? "#1e1e30" : "transparent",
+                            color: viewMode === v ? "#a5b4fc" : "var(--text-muted)",
+                          }}>
+                          {v === "campaigns" ? "Campaigns" : v === "adsets" ? "Ad Sets" : "Ads"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {loading && !data ? (
+                  <div className="py-12 text-center text-sm" style={{ color: "var(--text-faint)" }}>Loading…</div>
+                ) : viewMode === "campaigns" ? (
+                  <ReportCampaignTable
+                    campaigns={filteredCampaigns}
+                    expanded={expanded}
+                    adExpanded={adExpanded}
+                    onToggleAdsets={toggleAdsets}
+                    onToggleAds={toggleAds}
+                  />
+                ) : (
+                  <FlatTable
+                    items={flatItems}
+                    type={viewMode === "adsets" ? "adset" : "ad"}
+                    loading={flatLoading && (viewMode === "adsets" ? flatAdsets === null : flatAds === null)}
+                  />
+                )}
               </div>
-              <span className="text-xs" style={{ color: "var(--text-faint)" }}>▸ expand to ad sets → ads</span>
-            </div>
-            {loading && !data
-              ? <div className="py-12 text-center text-sm" style={{ color: "var(--text-faint)" }}>Loading…</div>
-              : <CampaignTable campaigns={campaigns} mode="reporting" expanded={expanded} adExpanded={adExpanded} dateParam={dateParam}
-                  onToggleAdsets={toggleAdsets} onToggleAds={toggleAds}
-                  onToggleStatus={toggleStatus} onSaveBudget={saveBudget} />
-            }
-          </div>
+            );
+          })()}
         </>
       )}
 

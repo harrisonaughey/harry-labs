@@ -4,12 +4,13 @@ const META_BASE = "https://graph.facebook.com/v19.0";
 
 export async function GET(req: NextRequest) {
   const adsetId = req.nextUrl.searchParams.get("adsetId");
+  const account = req.nextUrl.searchParams.get("account") === "true";
   const since   = req.nextUrl.searchParams.get("since");
   const until   = req.nextUrl.searchParams.get("until");
   const preset  = req.nextUrl.searchParams.get("preset") ?? "last_30d";
   const token   = process.env.META_ACCESS_TOKEN ?? "";
 
-  if (!adsetId || !token) {
+  if ((!adsetId && !account) || !token) {
     return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
   }
 
@@ -21,11 +22,16 @@ export async function GET(req: NextRequest) {
     "name",
     "status",
     "creative{id,name,thumbnail_url,object_story_spec,asset_feed_spec}",
-    `${insightDateParam}{spend,impressions,clicks,ctr,cpc,reach,frequency,actions,action_values}`,
+    `${insightDateParam}{spend,impressions,reach,clicks,ctr,cpc,frequency,actions,action_values}`,
   ].join(",");
 
-  const qs  = new URLSearchParams({ fields, limit: "50", access_token: token });
-  const res = await fetch(`${META_BASE}/${adsetId}/ads?${qs}`);
+  const rawAccountId = (process.env.META_AD_ACCOUNT_ID ?? "").replace("act_", "");
+  const endpoint     = account
+    ? `${META_BASE}/act_${rawAccountId}/ads`
+    : `${META_BASE}/${adsetId}/ads`;
+
+  const qs  = new URLSearchParams({ fields, limit: account ? "200" : "50", access_token: token });
+  const res = await fetch(`${endpoint}?${qs}`);
   const data = await res.json();
 
   if (!res.ok) {

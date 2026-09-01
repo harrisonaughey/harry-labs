@@ -1,0 +1,152 @@
+{
+  "_meta": {
+    "updated": "2026-09-01",
+    "version": "1.0"
+  },
+  "rates": {
+    "jenne": 10,
+    "nick": 10
+  },
+  "entries": [
+    {
+      "id": "pay-jenne-pre-1",
+      "creator": "jenne",
+      "brief": "Pre-B02 (1)",
+      "video_ids": [],
+      "payment_status": "paid",
+      "payment_date": null,
+      "amount": 10,
+      "notes": "Pre-tracker submission — paid"
+    },
+    {
+      "id": "pay-jenne-pre-2",
+      "creator": "jenne",
+      "brief": "Pre-B02 (2)",
+      "video_ids": [],
+      "payment_status": "paid",
+      "payment_date": null,
+      "amount": 10,
+      "notes": "Pre-tracker submission — paid"
+    },
+    {
+      "id": "pay-jenne-pre-3",
+      "creator": "jenne",
+      "brief": "Pre-B02 (3)",
+      "video_ids": [],
+      "payment_status": "paid",
+      "payment_date": null,
+      "amount": 10,
+      "notes": "Pre-tracker submission — paid"
+    },
+    {
+      "id": "pay-jenne-b02-1",
+      "creator": "jenne",
+      "brief": "B02.1",
+      "video_ids": ["jenne-b02-1"],
+      "payment_status": "paid",
+      "payment_date": null,
+      "amount": null,
+      "notes": "REVISE (73) — duration 42.5s. Paid regardless of revision status."
+    },
+    {
+      "id": "pay-jenne-b02-2",
+      "creator": "jenne",
+      "brief": "B02.2",
+      "video_ids": ["jenne-b02-2"],
+      "payment_status": "paid",
+      "payment_date": null,
+      "amount": null,
+      "notes": "REVISE (67) — typo + duration. Paid regardless of revision status."
+    },
+    {
+      "id": "pay-jenne-b02-3",
+      "creator": "jenne",
+      "brief": "B02.3",
+      "video_ids": ["jenne-b02-3"],
+      "payment_status": "paid",
+      "payment_date": null,
+      "amount": null,
+      "notes": "GREEN LIGHT (84) — 22.2s. Paid."
+    },
+    {
+      "id": "pay-jenne-b07",
+      "creator": "jenne",
+      "brief": "B07",
+      "video_ids": ["jenne-b07"],
+      "payment_status": "due",
+      "payment_date": null,
+      "amount": null,
+      "notes": "GREEN LIGHT (84) — V2 approved. Payment due."
+    },
+    {
+      "id": "pay-jenne-b08",
+      "creator": "jenne",
+      "brief": "B08",
+      "video_ids": ["jenne-b08"],
+      "payment_status": "due",
+      "payment_date": null,
+      "amount": null,
+      "notes": "GREEN LIGHT (77) — approved. Payment due."
+    },
+    {
+      "id": "pay-jenne-b09",
+      "creator": "jenne",
+      "brief": "B09",
+      "video_ids": ["jenne-b09"],
+      "payment_status": "due",
+      "payment_date": null,
+      "amount": null,
+      "notes": "GREEN LIGHT (87) — V2 approved. Payment due."
+    },
+    {
+      "id": "pay-jenne-b10",
+      "creator": "jenne",
+      "brief": "B10",
+      "video_ids": ["jenne-b10"],
+      "payment_status": "pending_revision",
+      "payment_date": null,
+      "amount": null,
+      "notes": "REJECT — 3 filming locations. Awaiting revision before payment."
+    },
+    {
+      "id": "pay-jenne-b11",
+      "creator": "jenne",
+      "brief": "B11",
+      "video_ids": ["jenne-b11"],
+      "payment_status": "pending_revision",
+      "payment_date": null,
+      "amount": null,
+      "notes": "REVISE (65) — 35s duration + orange text + hook. Awaiting revision before payment."
+    },
+    {
+      "id": "pay-nick-b10",
+      "creator": "nick",
+      "brief": "B10",
+      "video_ids": ["nick-b10-a", "nick-b10-b", "nick-b10-c", "nick-b10-d"],
+      "payment_status": "paid",
+      "payment_date": "2026-09-01",
+      "amount": null,
+      "notes": "4 hook variants (A/B/C/D) — paid 2026-09-01"
+    },
+    {
+      "id": "pay-nick-b11",
+      "creator": "nick",
+      "brief": "B11",
+      "video_ids": ["nick-b11-a", "nick-b11-b", "nick-b11-c", "nick-b11-d"],
+      "payment_status": "paid",
+      "payment_date": "2026-09-01",
+      "amount": null,
+      "notes": "4 hook variants (A/B/C/D) — paid 2026-09-01"
+    },
+    {
+      "id": "pay-nick-b12",
+      "creator": "nick",
+      "brief": "B12",
+      "video_ids": [],
+      "payment_status": "paid",
+      "payment_date": "2026-09-01",
+      "amount": 40,
+      "notes": "Paid 2026-09-01"
+    }
+  ]
+}
