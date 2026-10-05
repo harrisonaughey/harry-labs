@@ -6,6 +6,7 @@ import { getRepeatRate, getTopProductsByRevenue } from "@/lib/analytics";
 import { isMetaConnected } from "@/lib/meta";
 import { isGoogleConnected } from "@/lib/googleAds";
 import { isTikTokConnected } from "@/lib/tiktok";
+import { getAmazonMonthsData } from "@/lib/amazon";
 
 export const revalidate = 300;
 
@@ -31,12 +32,23 @@ export default async function CFOPage({
   const now = new Date();
   const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
 
+  // Build list of month strings for the 6-month window
+  const sixMonthKeys: string[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    sixMonthKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+  }
+
   let ordersQ = supabase
     .from("orders")
     .select("total_price, financial_status, created_at")
     .gte("created_at", sixMonthsAgo.toISOString());
   if (storeId) ordersQ = ordersQ.eq("store_id", storeId);
-  const { data: rawOrders } = await ordersQ;
+
+  const [{ data: rawOrders }, amazonMonths] = await Promise.all([
+    ordersQ,
+    getAmazonMonthsData(storeId ?? "default", sixMonthKeys),
+  ]);
 
   const monthMap: Record<string, { revenue: number; orderCount: number; refunds: number }> = {};
   for (const o of rawOrders ?? []) {
@@ -49,6 +61,17 @@ export default async function CFOPage({
     } else if (o.financial_status !== "voided") {
       monthMap[key].revenue    += price;
       monthMap[key].orderCount  += 1;
+    }
+  }
+
+  // Add Amazon revenue + orders to each month
+  for (const key of sixMonthKeys) {
+    const amz = amazonMonths[key];
+    if (amz?.hasData) {
+      if (!monthMap[key]) monthMap[key] = { revenue: 0, orderCount: 0, refunds: 0 };
+      monthMap[key].revenue    += amz.revenue;
+      monthMap[key].orderCount += amz.orders;
+      monthMap[key].refunds    += amz.refunds;
     }
   }
 
